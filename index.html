@@ -1,0 +1,1309 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>Situ Darma</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Tata letak: pita judul berwarna, lalu dua kolom (adegan + grafik | lembar kerja), menumpuk satu kolom di ponsel.
+   Satu tampilan cerah yang disengaja (tidak mengikuti mode gelap), semua warna ditulis eksplisit. */
+:root{
+  color-scheme: light;
+  --bg:#effaf6; --card:#ffffff; --ink:#122c27; --muted:#40605a; --line:#c9e4da;
+  --teal:#0b6e82; --teal-2:#0e8aa3; --leaf:#15803d; --leaf-soft:#dcf5e3;
+  --lilac:#7c4fd6; --lilac-soft:#efe7fd; --sun:#f59e0b; --sun-soft:#fff4d6;
+  --coral:#d6264f; --coral-soft:#fde4ea; --mud:#8a5a2b;
+  --serA:#15803d; --serB:#c2410c; --serK:#5b6b68;
+  --radius:14px;
+  --f-display: "Trebuchet MS", "Segoe UI", ui-rounded, system-ui, sans-serif;
+  --f-body: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --f-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.2;margin:0}
+button,input,textarea,select{font:inherit}
+sup,sub{line-height:0}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* Pita judul */
+.band{background:linear-gradient(110deg,#0b6e82 0%,#0f8f7a 55%,#3f9a3a 100%);color:#fff}
+.band .wrap{padding-block:14px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between}
+.band h1{font-size:clamp(1.2rem,3.6vw,1.65rem);letter-spacing:.2px}
+.band .sub{font-size:.88rem;opacity:.95}
+.hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:.74rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.tag.ilu{background:var(--sun-soft);color:#7a4a00;border:1.5px solid #f2c45a}
+.hearts{display:flex;gap:4px;background:rgba(255,255,255,.16);border-radius:999px;padding:4px 10px}
+.hearts svg{width:24px;height:24px;display:block}
+.hearts .lost{animation:lose .6s ease}
+@keyframes lose{0%{transform:scale(1)}30%{transform:scale(1.35) rotate(-10deg)}100%{transform:scale(1)}}
+
+/* Langkah */
+.steps{display:flex;gap:6px;flex-wrap:wrap;padding-block:12px;margin:0;list-style:none}
+.steps li{display:flex;align-items:center;gap:7px;padding:5px 12px 5px 6px;border-radius:999px;background:#fff;border:1.5px solid var(--line);color:var(--muted);font-weight:600;font-size:.86rem}
+.steps li b{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--line);color:var(--ink);font-size:.78rem}
+.steps li.now{border-color:var(--teal);color:var(--teal)}
+.steps li.now b{background:var(--teal);color:#fff}
+.steps li.done b{background:var(--leaf);color:#fff}
+
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;padding-bottom:28px;align-items:start}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);padding:16px;min-width:0}
+.card h2{font-size:1.15rem;margin-bottom:8px;color:var(--teal)}
+.card h3{font-size:1rem;margin:4px 0 6px}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+
+/* Adegan */
+.scene-card{padding:0;overflow:hidden;position:relative}
+.scene-card > svg{display:block;width:100%;height:auto}
+.scene-top{position:absolute;left:10px;top:10px;right:10px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;pointer-events:none}
+.chip{background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:.8rem;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.overflow-banner{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(214,38,79,.92);color:#fff;border-radius:10px;padding:6px 10px;font-size:.82rem;font-weight:600}
+.scene-foot{padding:12px 16px;border-top:1.5px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.slider-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.slider-row label{font-weight:700;min-width:9.5em;font-variant-numeric:tabular-nums}
+input[type=range]{flex:1;min-width:160px;accent-color:var(--teal)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.83rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend svg{flex:none}
+
+/* Grafik */
+.chart-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.seg{display:inline-flex;border:1.5px solid var(--teal);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:#fff;color:var(--teal);padding:4px 12px;font-weight:600;font-size:.82rem;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--teal);color:#fff}
+.seg button:disabled{color:#94a8a4;cursor:not-allowed}
+.chart-box{overflow-x:auto}
+#chart{display:block;width:100%;min-width:420px;height:auto}
+#chart text{font-family:var(--f-body);fill:var(--ink)}
+
+/* Lembar kerja */
+.panel{position:relative}
+.q{border:1.5px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;background:#fbfffd}
+.q + .q{margin-top:10px}
+.q.ok{border-color:#8fd3a6;background:var(--leaf-soft)}
+.q .who{display:flex;align-items:center;gap:8px;font-weight:700}
+.q .who svg{flex:none}
+.inrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.inrow input[type=text]{flex:1;min-width:150px;padding:9px 11px;border:1.5px solid #9cc7ba;border-radius:10px;background:#fff;color:var(--ink);font-family:var(--f-mono);font-size:.95rem}
+.inrow .unit{font-weight:600;color:var(--muted)}
+.read{font-size:.8rem;color:var(--muted);min-height:1.2em}
+.btn{border:0;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer;background:var(--teal);color:#fff}
+.btn:hover{background:#095d6e}
+.btn.alt{background:#fff;color:var(--teal);border:1.5px solid var(--teal)}
+.btn.alt:hover{background:#e6f5f8}
+.btn.go{background:var(--leaf)}
+.btn.go:hover{background:#106a33}
+.btn:disabled{background:#a7bdb8;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.fb{border-radius:10px;padding:8px 11px;font-size:.9rem}
+.fb.bad{background:var(--coral-soft);color:#7d0f2a;border:1px solid #f3a9ba}
+.fb.good{background:#e3f7e8;color:#0d4f23;border:1px solid #9ad7ab}
+.fb.warn{background:var(--sun-soft);color:#6b4100;border:1px solid #f2c45a}
+.formula{font-family:var(--f-mono);font-size:.9rem;background:#fff;border:1px dashed #8fd3a6;border-radius:8px;padding:6px 9px;overflow-x:auto}
+.hint{font-size:.85rem}
+.hint summary{cursor:pointer;color:var(--teal);font-weight:600}
+.shake{animation:shake .45s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.pop{animation:pop .55s ease}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.025);box-shadow:0 0 0 6px rgba(21,128,61,.18)}100%{transform:scale(1)}}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.choice{display:flex;flex-direction:column;align-items:center;gap:6px;border:2px solid var(--line);border-radius:12px;padding:10px;background:#fff;cursor:pointer;text-align:center;font-weight:600;color:var(--ink)}
+.choice[aria-pressed=true]{border-color:var(--teal);background:#e6f5f8}
+.choice svg{width:100%;max-width:150px;height:auto}
+textarea{width:100%;min-height:80px;padding:9px 11px;border:1.5px solid #9cc7ba;border-radius:10px;background:#fff;color:var(--ink);resize:vertical}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff;cursor:pointer;color:var(--ink)}
+.opt:hover{border-color:var(--teal)}
+.opt.wrong{border-color:#f3a9ba;background:var(--coral-soft);color:#7d0f2a}
+.opt.right{border-color:#8fd3a6;background:var(--leaf-soft)}
+.opt:disabled{cursor:default}
+table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#f1faf6;color:var(--muted);font-weight:700}
+.tbl{overflow-x:auto}
+.params{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.param{background:#f6fcf9;border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+.param .k{font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.param .v{font-weight:700;font-variant-numeric:tabular-nums}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.stack{display:flex;flex-direction:column;gap:10px}
+.verdict{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:12px;background:var(--lilac-soft);border:1px solid #cdb8f5}
+.notes summary{cursor:pointer;font-family:var(--f-display);font-weight:700;color:var(--lilac);font-size:1.05rem}
+.notes .stack{margin-top:10px}
+.overlay{position:fixed;inset:0;background:rgba(10,30,28,.55);display:grid;place-items:center;padding:16px;z-index:20}
+.modal{background:#fff;border-radius:16px;max-width:430px;width:100%;padding:20px;display:flex;flex-direction:column;gap:12px;text-align:center;align-items:center;border:2px solid var(--coral)}
+.modal h2{color:var(--coral)}
+footer{padding-block:6px 30px;color:var(--muted);font-size:.82rem}
+
+/* Animasi adegan */
+.sunrays{transform-origin:690px 58px;animation:spin 40s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.swim{animation:swim var(--d,7s) ease-in-out infinite alternate}
+@keyframes swim{from{transform:translateX(-22px)}to{transform:translateX(22px)}}
+.bob{animation:bob 4s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(-1.2px)}to{transform:translateY(1.2px)}}
+.drift{animation:drift 6s linear infinite}
+@keyframes drift{from{transform:translate(0,0);opacity:.9}to{transform:translate(70px,40px);opacity:0}}
+.ros{transition:opacity .45s ease}
+.fish{transition:opacity .5s ease}
+.stem{transition:opacity .5s ease}
+.cheer{animation:cheer .9s ease}
+@keyframes cheer{0%{transform:translateY(0)}35%{transform:translateY(-14px)}100%{transform:translateY(0)}}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+@media (max-width:920px){.grid{grid-template-columns:minmax(0,1fr)}.col{display:contents}.o1{order:1}.o2{order:2}.o3{order:3}.o4{order:4}.o5{order:5}}
+</style>
+
+<header class="band">
+  <div class="wrap">
+    <div>
+      <h1>Situ Darma</h1>
+      <div class="sub">Lembar Kerja Mahasiswa · Dinamika populasi tumbuhan air</div>
+    </div>
+    <div class="hud">
+      <span class="tag ilu" title="Semua angka dan gambar bersifat ilustrasi">ILUSTRASI</span>
+      <div class="hearts" id="hearts" role="img" aria-label="Nyawa"></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <ol class="steps" id="steps" aria-label="Langkah LKM">
+    <li data-s="mulai"><b>0</b>Skenario</li>
+    <li data-s="prediksi"><b>1</b>Prediksi</li>
+    <li data-s="hitung"><b>2</b>Hitung</li>
+    <li data-s="telaah"><b>3</b>Telaah</li>
+    <li data-s="refleksi"><b>4</b>Refleksi</li>
+    <li data-s="level2"><b>5</b>Level 2: Pengelola Situ</li>
+  </ol>
+
+  <div class="grid">
+    <div class="col">
+      <section class="card scene-card o1" aria-label="Adegan situ (ilustrasi)">
+        <svg id="scene" viewBox="0 0 800 380" role="img" aria-labelledby="sceneDesc">
+          <desc id="sceneDesc">Ilustrasi situ: langit, matahari, permukaan air dengan eceng gondok, penampang bawah air dengan ikan dan rumput pita di dasar, serta pipa limbah organik di tepi kiri.</desc>
+          <defs>
+            <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd8ff"/><stop offset="1" stop-color="#e3f6ff"/></linearGradient>
+            <linearGradient id="gSurf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fd3e0"/><stop offset="1" stop-color="#4fb9cc"/></linearGradient>
+            <linearGradient id="gDeep" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2aa3bb"/><stop offset="1" stop-color="#0f5f74"/></linearGradient>
+            <linearGradient id="gPet" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9ad46b"/><stop offset=".55" stop-color="#c9ef98"/><stop offset="1" stop-color="#86c25a"/></linearGradient>
+            <radialGradient id="gLeaf" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#4cc26a"/><stop offset="1" stop-color="#1c7d3a"/></radialGradient>
+            <radialGradient id="gSun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff3b0"/><stop offset=".6" stop-color="#ffd23f"/><stop offset="1" stop-color="#f7a90d"/></radialGradient>
+
+            <!-- Bunga eceng gondok: 6 helai ungu muda, helai atas dengan bercak ungu tua dan titik kuning -->
+            <g id="flw">
+              <g fill="#d6c2f5" stroke="#a98bd8" stroke-width=".5">
+                <ellipse cx="0" cy="-4" rx="2.9" ry="4.4"/>
+                <ellipse cx="0" cy="-4" rx="2.9" ry="4.4" transform="rotate(60)"/>
+                <ellipse cx="0" cy="-4" rx="2.9" ry="4.4" transform="rotate(120)"/>
+                <ellipse cx="0" cy="-4" rx="2.9" ry="4.4" transform="rotate(180)"/>
+                <ellipse cx="0" cy="-4" rx="2.9" ry="4.4" transform="rotate(240)"/>
+                <ellipse cx="0" cy="-4" rx="2.9" ry="4.4" transform="rotate(300)"/>
+              </g>
+              <ellipse cx="0" cy="-4.2" rx="1.5" ry="2.1" fill="#6d3fc8"/>
+              <circle cx="0" cy="-4.4" r=".9" fill="#facc15"/>
+              <circle cx="0" cy="0" r="1" fill="#efe4ff"/>
+            </g>
+
+            <!-- Roset eceng gondok: tangkai daun menggembung + helai daun membulat mengilap -->
+            <g id="eg">
+              <ellipse cx="0" cy="1" rx="22" ry="3.5" fill="#0b5466" opacity=".25"/>
+              <g stroke="#5f9e3e" stroke-width=".7">
+                <path d="M-3 -2 Q-12 -10 -17 -18" fill="none" stroke="#5f9e3e" stroke-width="2"/>
+                <path d="M3 -2 Q12 -10 17 -18" fill="none" stroke="#5f9e3e" stroke-width="2"/>
+                <path d="M-1 -4 Q-4 -18 -6 -26" fill="none" stroke="#5f9e3e" stroke-width="2"/>
+                <path d="M1 -4 Q5 -19 8 -28" fill="none" stroke="#5f9e3e" stroke-width="2"/>
+                <ellipse cx="-9" cy="-7" rx="5.2" ry="7.5" transform="rotate(-38 -9 -7)" fill="url(#gPet)"/>
+                <ellipse cx="9" cy="-7" rx="5.2" ry="7.5" transform="rotate(38 9 -7)" fill="url(#gPet)"/>
+                <ellipse cx="-3" cy="-11" rx="4.3" ry="7.6" transform="rotate(-10 -3 -11)" fill="url(#gPet)"/>
+                <ellipse cx="4" cy="-12" rx="4.3" ry="7.8" transform="rotate(12 4 -12)" fill="url(#gPet)"/>
+              </g>
+              <g stroke="#155e2c" stroke-width=".8">
+                <ellipse cx="-21" cy="-24" rx="10" ry="8.6" transform="rotate(-28 -21 -24)" fill="url(#gLeaf)"/>
+                <ellipse cx="21" cy="-24" rx="10" ry="8.6" transform="rotate(28 21 -24)" fill="url(#gLeaf)"/>
+                <ellipse cx="-7" cy="-34" rx="9" ry="9.5" transform="rotate(-8 -7 -34)" fill="url(#gLeaf)"/>
+                <ellipse cx="9" cy="-36" rx="9.4" ry="9.6" transform="rotate(10 9 -36)" fill="url(#gLeaf)"/>
+              </g>
+              <g fill="#ffffff" opacity=".55">
+                <ellipse cx="-24" cy="-27" rx="3.6" ry="2" transform="rotate(-30 -24 -27)"/>
+                <ellipse cx="18" cy="-28" rx="3.6" ry="2" transform="rotate(25 18 -28)"/>
+                <ellipse cx="-10" cy="-38" rx="3.4" ry="2" transform="rotate(-15 -10 -38)"/>
+                <ellipse cx="6" cy="-40" rx="3.4" ry="2" transform="rotate(12 6 -40)"/>
+              </g>
+              <g fill="none" stroke="#1a6b31" stroke-width=".5" opacity=".6">
+                <path d="M-21 -17 Q-22 -24 -26 -30"/><path d="M21 -17 Q22 -24 26 -30"/>
+                <path d="M-6 -26 Q-7 -34 -9 -42"/><path d="M8 -27 Q9 -35 11 -44"/>
+              </g>
+            </g>
+
+            <!-- Roset berbunga -->
+            <g id="egf">
+              <use href="#eg"/>
+              <path d="M0 -8 Q2 -30 1 -60" fill="none" stroke="#4f9a3e" stroke-width="2.4"/>
+              <use href="#flw" transform="translate(-5 -46) scale(.9)"/>
+              <use href="#flw" transform="translate(6 -50) scale(.9)"/>
+              <use href="#flw" transform="translate(-4 -57) scale(.85)"/>
+              <use href="#flw" transform="translate(5 -61) scale(.8)"/>
+              <use href="#flw" transform="translate(0 -67) scale(.72)"/>
+            </g>
+
+            <!-- Akar serabut eceng gondok -->
+            <g id="egr" fill="none" stroke="#3f2c4f" stroke-width="1.1" opacity=".8" stroke-linecap="round">
+              <path d="M-6 0 Q-9 12 -7 28"/><path d="M-2 0 Q-3 14 -2 32"/><path d="M3 0 Q4 13 2 30"/><path d="M7 0 Q10 11 9 25"/>
+              <path d="M-8 10 l-3 2 M-7 18 l-3 2 M-2 12 l-3 2 M-2 22 l3 2 M3 10 l3 2 M3 20 l-3 2 M9 12 l3 2" stroke-width=".7"/>
+            </g>
+
+            <!-- Ikan -->
+            <g id="fishG">
+              <path d="M-14 0 L-24 -7 L-22 0 L-24 7 Z"/>
+              <ellipse cx="0" cy="0" rx="15" ry="7.5"/>
+              <path d="M-3 -7 Q2 -12 6 -6.5" opacity=".8"/>
+              <circle cx="8" cy="-1.5" r="2.2" fill="#fff"/>
+              <circle cx="8.6" cy="-1.5" r="1.1" fill="#111"/>
+            </g>
+            <g id="hy"></g>
+            <g id="hyd"></g>
+          </defs>
+
+          <!-- langit -->
+          <rect x="0" y="0" width="800" height="160" fill="url(#gSky)"/>
+          <g class="sunrays" stroke="#ffcc33" stroke-width="4" stroke-linecap="round" opacity=".85">
+            <path d="M690 8v14M690 94v14M640 58h14M726 58h14M655 23l10 10M715 83l10 10M655 93l10-10M715 33l10-10"/>
+          </g>
+          <circle cx="690" cy="58" r="27" fill="url(#gSun)"/>
+          <g fill="#ffffff" opacity=".92">
+            <ellipse cx="170" cy="48" rx="38" ry="13"/><ellipse cx="200" cy="40" rx="26" ry="14"/><ellipse cx="146" cy="44" rx="18" ry="10"/>
+            <ellipse cx="460" cy="30" rx="30" ry="10"/><ellipse cx="482" cy="24" rx="20" ry="11"/>
+          </g>
+          <!-- bukit jauh -->
+          <path d="M0 140 Q120 95 240 132 T480 128 T800 120 V160 H0Z" fill="#9bd38a"/>
+          <path d="M0 150 Q160 118 330 146 T800 140 V165 H0Z" fill="#79c06b"/>
+
+          <!-- air: permukaan (dilihat miring) + penampang -->
+          <rect x="30" y="146" width="740" height="58" fill="url(#gSurf)"/>
+          <path d="M30 150 q20 -4 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 V146 H30Z" fill="#b9ecf3" opacity=".7"/>
+          <rect x="30" y="204" width="740" height="150" fill="url(#gDeep)"/>
+          <path d="M30 204 H770" stroke="#d9f6fb" stroke-width="2" opacity=".8"/>
+          <!-- dasar -->
+          <path d="M30 340 Q200 330 400 342 T770 336 V380 H30Z" fill="#a77b4f"/>
+          <path d="M30 352 Q220 346 420 356 T770 350 V380 H30Z" fill="#8a5a2b"/>
+          <g fill="#6f4520" opacity=".6"><circle cx="120" cy="362" r="3"/><circle cx="300" cy="368" r="2.4"/><circle cx="520" cy="364" r="3.2"/><circle cx="660" cy="370" r="2"/></g>
+
+          <g id="layerB"></g>
+          <g id="layerFish"></g>
+          <rect id="murk" x="30" y="204" width="740" height="150" fill="#5b5a1e" opacity=".1"/>
+          <rect id="shade" x="30" y="204" width="740" height="150" fill="#06262e" opacity="0"/>
+          <rect id="murkTop" x="30" y="146" width="740" height="58" fill="#6b6a22" opacity=".05"/>
+          <g id="layerWaste"></g>
+          <g id="layerA"></g>
+
+          <!-- tepi kiri dengan pipa limbah -->
+          <path d="M0 128 L44 134 Q60 180 40 260 Q30 320 44 380 H0Z" fill="#5fae55"/>
+          <path d="M0 150 L36 152 Q48 200 30 270 Q22 330 34 380 H0Z" fill="#8a5a2b" opacity=".55"/>
+          <rect x="-4" y="126" width="62" height="15" rx="4" fill="#7d8a8c" stroke="#55615f" stroke-width="1.5"/>
+          <rect x="52" y="123" width="9" height="21" rx="2" fill="#66706f"/>
+          <text x="6" y="118" font-size="11" font-weight="700" fill="#3d2a12">limbah organik</text>
+          <!-- tepi kanan -->
+          <path d="M800 122 L758 130 Q742 180 760 260 Q772 320 756 380 H800Z" fill="#5fae55"/>
+          <path d="M800 146 L766 150 Q756 200 772 270 Q780 330 768 380 H800Z" fill="#8a5a2b" opacity=".55"/>
+          <g stroke="#3f7d2c" stroke-width="2.5" stroke-linecap="round" fill="none">
+            <path d="M770 132 Q768 100 772 72"/><path d="M780 130 Q784 96 780 64"/><path d="M790 130 Q792 104 796 84"/>
+          </g>
+          <g fill="#7a4a21"><rect x="768.5" y="70" width="7" height="22" rx="3.5"/><rect x="777" y="62" width="7" height="24" rx="3.5"/></g>
+          <g fill="#3f9a3a"><path d="M8 130 l4 -14 l3 14Z"/><path d="M20 132 l5 -18 l3 18Z"/><path d="M32 133 l3 -12 l3 12Z"/></g>
+          <g id="cheerFish" opacity="0"><use href="#fishG" fill="#fb923c" transform="translate(400 210) rotate(-25)"/></g>
+        </svg>
+        <div class="scene-top">
+          <span class="chip" id="chipDay">Hari ke-0</span>
+          <span class="chip" id="chipCover">Tutupan permukaan: 0%</span>
+          <span class="chip" id="chipFish">Ikan: 0</span>
+        </div>
+        <div class="overflow-banner" id="overflow" hidden></div>
+        <div class="scene-foot">
+          <div class="slider-row">
+            <label for="tSlider" id="tLabel">Waktu: 0 hari</label>
+            <input type="range" id="tSlider" min="0" max="365" step="1" value="0" disabled aria-describedby="sliderNote">
+          </div>
+          <div class="small muted" id="sliderNote">Penggeser waktu terbuka setelah semua perhitungan benar.</div>
+          <div class="legend">
+            <span><svg width="34" height="28" viewBox="-26 -44 52 50" aria-hidden="true"><use href="#eg"/></svg>A: eceng gondok (mengapung)</span>
+            <span><svg width="24" height="34" viewBox="-22 -116 44 122" aria-hidden="true"><use href="#hy"/></svg>B: rumput pita (di dasar)</span>
+            <span><svg width="30" height="18" viewBox="-26 -10 44 20" aria-hidden="true"><use href="#fishG" fill="#fb923c"/></svg>ikan</span>
+          </div>
+          <div class="small muted">Perubahan air, tutupan, dan jumlah ikan adalah gambaran kualitatif (ILUSTRASI), bukan hasil pengukuran.</div>
+        </div>
+      </section>
+
+      <section class="card o3" aria-label="Grafik populasi terhadap waktu">
+        <div class="chart-head">
+          <h2 style="margin:0">Biomassa terhadap waktu</h2>
+          <div class="seg" id="chartSeg" role="group" aria-label="Model grafik">
+            <button type="button" id="mExp" aria-pressed="true">Eksponensial (skala log)</button>
+            <button type="button" id="mLog" aria-pressed="false" disabled>Logistik (skala linear)</button>
+          </div>
+        </div>
+        <div class="legend" id="legendL2" style="margin-bottom:6px" hidden>
+          <span><svg width="34" height="10" aria-hidden="true"><line x1="2" y1="5" x2="32" y2="5" stroke="#15803d" stroke-width="3.5"/></svg>Tutupan eceng gondok, % (garis utuh)</span>
+          <span><svg width="34" height="10" aria-hidden="true"><line x1="2" y1="5" x2="32" y2="5" stroke="#c2410c" stroke-width="3.5" stroke-dasharray="7 5"/></svg>Rumput pita, % biomassa awal (putus-putus)</span>
+          <span><svg width="34" height="10" aria-hidden="true"><line x1="2" y1="5" x2="32" y2="5" stroke="#1d4ed8" stroke-width="2.6" stroke-dasharray="9 3 2 3"/></svg>Indeks ikan (garis-titik)</span>
+          <span><svg width="34" height="10" aria-hidden="true"><line x1="2" y1="5" x2="32" y2="5" stroke="#5b6b68" stroke-width="2" stroke-dasharray="1.5 4" stroke-linecap="round"/></svg>Batas naungan (titik-titik)</span>
+        </div>
+        <div class="legend" id="legendL1" style="margin-bottom:6px">
+          <span><svg width="34" height="10" aria-hidden="true"><line x1="2" y1="5" x2="32" y2="5" stroke="#15803d" stroke-width="3.5"/></svg>A eceng gondok (garis utuh)</span>
+          <span><svg width="34" height="10" aria-hidden="true"><line x1="2" y1="5" x2="32" y2="5" stroke="#c2410c" stroke-width="3.5" stroke-dasharray="7 5"/></svg>B rumput pita (putus-putus)</span>
+          <span><svg width="34" height="10" aria-hidden="true"><line x1="2" y1="5" x2="32" y2="5" stroke="#5b6b68" stroke-width="2" stroke-dasharray="1.5 4" stroke-linecap="round"/></svg>K daya dukung (titik-titik)</span>
+        </div>
+        <div class="chart-box"><svg id="chart" viewBox="0 0 640 330" role="img" aria-label="Grafik biomassa A dan B terhadap waktu"></svg></div>
+        <div class="small muted" id="chartNote"></div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="card panel o2" id="panel" aria-live="polite"></section>
+      <section class="card o4" id="paramCard" hidden>
+        <h2>Parameter soal Anda <span class="tag ilu">ILUSTRASI</span></h2>
+        <div class="params" id="paramGrid"></div>
+        <p class="small muted" style="margin:8px 0 0">Angka diacak dalam rentang yang ditetapkan dosen, jadi hasil tiap mahasiswa berbeda. Angka bukan data lapangan.</p>
+      </section>
+      <section class="card o5">
+        <details class="notes" id="notes">
+          <summary>Catatan dosen</summary>
+          <div class="stack" id="notesBody"></div>
+        </details>
+      </section>
+    </div>
+  </div>
+  <footer>LKM dinamika populasi. Semua angka, adegan, dan grafik berlabel ILUSTRASI dan dapat diubah dosen pada tabel PARAM di awal kode JavaScript.</footer>
+</div>
+
+<div class="overlay" id="over" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="overT">
+    <svg width="64" height="56" viewBox="0 0 24 22" aria-hidden="true"><path d="M12 20.5S2.5 14.6 2.5 8.2C2.5 5 4.9 2.6 7.8 2.6c1.8 0 3.3.9 4.2 2.3.9-1.4 2.4-2.3 4.2-2.3 2.9 0 5.3 2.4 5.3 5.6 0 6.4-9.5 12.3-9.5 12.3z" fill="none" stroke="#d6264f" stroke-width="1.6"/></svg>
+    <h2 id="overT">Nyawa habis</h2>
+    <p style="margin:0">Permainan berakhir. Ulangi dengan parameter acak yang baru. Prediksi Anda tetap tersimpan.</p>
+    <div class="row" style="justify-content:center">
+      <button class="btn go" id="btnRetry" type="button">Ulangi dengan parameter baru</button>
+      <button class="btn alt" id="btnScen" type="button">Ganti skenario</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   TABEL PARAMETER (ILUSTRASI) — dosen dapat mengubah angka di sini.
+   Setiap nilai berupa [min, maks] diacak; nilai tunggal dipakai apa adanya.
+   N0 = biomassa basah awal (kg); td = waktu penggandaan (hari);
+   K  = batas daya dukung (kg biomassa basah) untuk situ ini.
+   ===================================================================== */
+const PARAM = {
+  hariDefault: 365,          // lama waktu t (hari); mahasiswa dapat mengubahnya di awal
+  toleransi: 0.02,           // jawaban angka diterima bila selisih relatif ≤ 2%
+  nyawaAwal: 5,
+  langkahTd: 0.5,            // td diacak dengan kelipatan 0,5 hari
+  pembulatanDiniKurangiNyawa: false,
+  naungan: { m_per_hari: 0.08 },  // laju kematian rumput pita bila permukaan tertutup penuh eceng gondok (ILUSTRASI); dipakai pada model logistik // false: N yang konsisten dengan n yang dibulatkan diberi peringatan tanpa mengurangi nyawa
+  situ: { luas_m2: 20000, biomassaTutupPenuh_kg_per_m2: 30 }, // 2 ha × 30 kg/m² = 600 000 kg = tutupan 100% (ILUSTRASI)
+  skenario: {
+    jernih: {
+      nama: "Perairan jernih", limbah: 0.0, kekeruhan: 0.04,
+      A: { N0: [2, 6], td: [10, 11], K: 60000 },
+      B: { N0: [20, 40], td: [12, 16], K: 90000 }
+    },
+    sedang: {
+      nama: "Tercemar limbah organik sedang", limbah: 0.5, kekeruhan: 0.28,
+      A: { N0: [2, 6], td: [8.5, 10], K: 360000 },
+      B: { N0: [20, 40], td: [20, 30], K: 30000 }
+    },
+    berat: {
+      nama: "Tercemar berat", limbah: 1.0, kekeruhan: 0.55,
+      A: { N0: [2, 6], td: [7, 8.5], K: 600000 },
+      B: { N0: [20, 40], td: [40, 60], K: 5000 }
+    }
+  }
+};
+const NAMA = { A: "eceng gondok (A)", B: "rumput pita (B)" };
+
+/* ---------- utilitas ---------- */
+const $ = s => document.querySelector(s);
+const LN2 = Math.log(2);
+const SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent){ const e=document.createElementNS(SVGNS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e; }
+function rnd(a,b){ return a + Math.random()*(b-a); }
+function pick(v, step){ if(!Array.isArray(v)) return v; if(step){ const n=Math.round((v[1]-v[0])/step); return +(v[0]+step*Math.floor(Math.random()*(n+1))).toFixed(4);} return Math.round(rnd(v[0],v[1])); }
+function mulberry(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function within(v, target){ return Math.abs(v-target) <= PARAM.toleransi*Math.abs(target); }
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function fmt(x, html=true){
+  if(!isFinite(x)) return "∞";
+  const a=Math.abs(x);
+  if(a!==0 && (a>=1e6 || a<1e-3)){
+    let e=Math.floor(Math.log10(a)); let m=x/Math.pow(10,e); m=+m.toFixed(3); if(Math.abs(m)>=10){m/=10;e++;}
+    const ms=m.toLocaleString("id-ID",{maximumFractionDigits:3});
+    return html ? `${ms} × 10<sup>${e}</sup>` : `${ms} × 10^${e}`;
+  }
+  if(a>=1000) return x.toLocaleString("id-ID",{maximumFractionDigits:0});
+  if(a>=1) return x.toLocaleString("id-ID",{maximumFractionDigits:3});
+  return x.toLocaleString("id-ID",{maximumSignificantDigits:4});
+}
+function parseAngka(raw){
+  if(raw==null) return NaN;
+  let s=String(raw).trim().toLowerCase().replace(/\s+/g,"").replace(/[×*·]/g,"x").replace(/−/g,"-");
+  if(!s) return NaN;
+  let man=s, ex=0, m;
+  if((m=s.match(/^([-+]?[\d.,]+)x10\^?([-+]?\d+)$/))){ man=m[1]; ex=+m[2]; }
+  else if((m=s.match(/^([-+]?[\d.,]+)e([-+]?\d+)$/))){ man=m[1]; ex=+m[2]; }
+  else if((m=s.match(/^10\^([-+]?\d+)$/))){ man="1"; ex=+m[1]; }
+  if(!/^[-+]?[\d.,]+$/.test(man)) return NaN;
+  if(man.includes(",")){ man=man.replace(/\./g,"").replace(",","."); if(man.includes(",")) return NaN; }
+  else if((man.match(/\./g)||[]).length>1){ man=man.replace(/\./g,""); }
+  const v=parseFloat(man); return isNaN(v)?NaN:v*Math.pow(10,ex);
+}
+
+/* ---------- model ---------- */
+function expo(p,t){ return p.N0*Math.pow(2,t/p.td); }
+function logi(p,t){ const r=LN2/p.td; return p.K/(1+((p.K-p.N0)/p.N0)*Math.exp(-r*t)); }
+/* B (rumput pita) pada model logistik: dN/dt = r N (1 − N/K) − m · c(t) · N
+   c(t) = tutupan permukaan oleh eceng gondok (0–1) menurut logistik A; m = laju kematian karena naungan. */
+let _bCache=null;
+function logB(t){
+  const A=S.p.A,B=S.p.B, key=[A.N0,A.td,A.K,B.N0,B.td,B.K,S.T].join("|");
+  if(!_bCache||_bCache.key!==key){
+    const dt=0.25, n=Math.ceil(Math.max(S.T,1)/dt), r=LN2/B.td, m=PARAM.naungan.m_per_hari, arr=new Float64Array(n+1);
+    let N=B.N0; arr[0]=N;
+    for(let i=1;i<=n;i++){ const tt=(i-1)*dt, c=Math.min(1,logi(A,tt)/CAP); N+=dt*(r*N*(1-N/B.K)-m*c*N); if(N<0)N=0; arr[i]=N; }
+    _bCache={key,arr,dt};
+  }
+  const i=Math.min(_bCache.arr.length-1,Math.max(0,Math.round(t/_bCache.dt))); return _bCache.arr[i];
+}
+function peakB(t){ let mx=0; for(let tt=0;tt<=t;tt+=1) mx=Math.max(mx,logB(tt)); return Math.max(mx,logB(t)); }
+function kunci(p,T){ const n=T/p.td; return { n, N:p.N0*Math.pow(2,n), r:LN2/p.td }; }
+const CAP = PARAM.situ.luas_m2*PARAM.situ.biomassaTutupPenuh_kg_per_m2;
+const MAXKB = Math.max(...Object.values(PARAM.skenario).map(s=>Array.isArray(s.B.K)?s.B.K[1]:s.B.K));
+
+/* ---------- status ---------- */
+const S = { sk:null, T:PARAM.hariDefault, p:null, lives:PARAM.nyawaAwal, stage:"mulai",
+  pred:{pilih:null, alasan:""}, qi:0, ans:{}, mi:0, mcq:null, hitungSelesai:false, logUnlocked:false,
+  chartMode:"exp", t:0, salah:[], refl:["","",""] };
+
+function newParams(){
+  const sc=PARAM.skenario[S.sk];
+  const mk=o=>({ N0:pick(o.N0), td:pick(o.td,PARAM.langkahTd), K:pick(o.K) });
+  S.p={A:mk(sc.A), B:mk(sc.B)};
+}
+function resetRun(){
+  S.lives=PARAM.nyawaAwal; S.qi=0; S.ans={}; S.mi=0; S.mcq=buildMcq(); S.hitungSelesai=false; S.logUnlocked=false;
+  S.chartMode="exp"; S.t=0; S.salah=[];
+}
+
+/* ---------- hati ---------- */
+const HEART="M12 20.5S2.5 14.6 2.5 8.2C2.5 5 4.9 2.6 7.8 2.6c1.8 0 3.3.9 4.2 2.3.9-1.4 2.4-2.3 4.2-2.3 2.9 0 5.3 2.4 5.3 5.6 0 6.4-9.5 12.3-9.5 12.3z";
+function drawHearts(lostIdx){
+  const h=$("#hearts"); h.innerHTML="";
+  if(S.stage==="level2"){
+    const v=L2?l2Health(L2):100;
+    h.innerHTML=`<span style="font-weight:700;font-size:.85rem;white-space:nowrap">Kesehatan situ ${v.toFixed(0)}</span><span style="display:inline-block;width:70px;height:10px;border-radius:99px;background:rgba(255,255,255,.35);align-self:center;overflow:hidden"><span style="display:block;height:100%;width:${v.toFixed(0)}%;background:${v>=60?"#86efac":v>=35?"#fcd34d":"#fda4af"}"></span></span>`;
+    h.setAttribute("aria-label",`Kesehatan situ ${v.toFixed(0)} dari 100`); return;
+  }
+  for(let i=0;i<PARAM.nyawaAwal;i++){
+    const full=i<S.lives;
+    const s=svgEl("svg",{viewBox:"0 0 24 22","aria-hidden":"true"},h);
+    svgEl("path",{d:HEART,fill:full?"#ff4d6d":"none",stroke:full?"#ffffff":"#ffd1da","stroke-width":"1.6"},s);
+    if(full) svgEl("ellipse",{cx:"7.5",cy:"7.5",rx:"2.2",ry:"1.4",fill:"#ffffff",opacity:".6",transform:"rotate(-30 7.5 7.5)"},s);
+    if(i===lostIdx) s.classList.add("lost");
+  }
+  h.setAttribute("aria-label",`Nyawa: ${S.lives} dari ${PARAM.nyawaAwal}`);
+}
+function loseLife(jenis){
+  S.lives--; S.salah.push(jenis); drawHearts(S.lives);
+  if(S.lives<=0){ setTimeout(()=>{ $("#over").hidden=false; $("#btnRetry").focus(); },450); }
+}
+
+/* ---------- adegan ---------- */
+const ros=[], stems=[], fishes=[], blobs=[];
+function buildScene(){
+  // tumbuhan B: rumput pita (Vallisneria spiralis), roset daun berbentuk pita dari dasar, tangkai bunga betina melilit
+  const drawVal=(g,dead)=>{
+    const leaves=[[-7,-96,-10],[-4,-108,6],[-1,-84,-4],[2,-112,10],[5,-90,-8],[8,-100,12],[0,-70,4]];
+    svgEl("path",{d:"M-16 3 Q-6 1 0 2 Q8 3 18 1",fill:"none",stroke:"#6b5634","stroke-width":"1.6"},g); // geragih (stolon)
+    svgEl("path",{d:"M-4 2 l-3 6 M0 2 l0 7 M4 2 l3 6",stroke:"#6b5634","stroke-width":"1"},g);
+    leaves.forEach(([x0,h,sw],i)=>{
+      const hh=dead? h*0.45 : h, sx=dead? sw*3.2 : sw;
+      const d=`M${x0} 0 C${x0+sx*0.4} ${hh*0.33} ${x0-sx*0.6} ${hh*0.66} ${x0+sx} ${hh}`;
+      svgEl("path",{d,fill:"none",stroke:dead?(i%2?"#a0803a":"#7a5a2b"):(i%2?"#3f8f3a":"#2f7a32"),"stroke-width":"3.8","stroke-linecap":"round"},g);
+      svgEl("path",{d,fill:"none",stroke:dead?"#c9a55a":"#8fd17a","stroke-width":".7",opacity:".8"},g);
+    });
+    if(!dead){
+      let d="M3 0"; for(let k=1;k<=22;k++){ const y=-k*5.2; d+=` Q${3+(k%2?5:-5)} ${y+2.6} 3 ${y}`; }
+      svgEl("path",{d,fill:"none",stroke:"#6aa84f","stroke-width":"1"},g);
+      svgEl("circle",{cx:"3",cy:"-115",r:"2.6",fill:"#f3f0e2",stroke:"#9b8f6a","stroke-width":".6"},g);
+    }
+  };
+  drawVal($("#hy"),false); drawVal($("#hyd"),true);
+  const rng=mulberry(11);
+  const LB=$("#layerB");
+  for(let i=0;i<14;i++){
+    const x=80+i*48+rng()*20, sc=0.85+rng()*0.4;
+    const tr=`translate(${x.toFixed(1)} ${(346+rng()*6).toFixed(1)}) scale(${sc.toFixed(2)})`;
+    const g=svgEl("g",{class:"stem",opacity:"0"},LB);
+    const live=svgEl("use",{href:"#hy",transform:tr},g), dead=svgEl("use",{href:"#hyd",transform:tr},g);
+    stems.push({g,live,dead});
+  }
+  // ikan
+  const cols=["#fb923c","#facc15","#f472b6","#fb7185","#fdba74","#fde047","#f97316"];
+  const LF=$("#layerFish");
+  const pos=[[160,236],[300,262],[470,228],[610,252],[230,300],[540,296],[390,318]];
+  pos.forEach((p,i)=>{
+    const g=svgEl("g",{class:"fish",opacity:"0"},LF);
+    const sw=svgEl("g",{class:"swim",style:`--d:${(5+i*0.9).toFixed(1)}s`},g);
+    svgEl("use",{href:"#fishG",fill:cols[i],transform:`translate(${p[0]} ${p[1]}) scale(${i%2?-0.9:1} ${i%2?0.9:1})`},sw);
+    fishes.push(g);
+  });
+  // limbah
+  const LW=$("#layerWaste");
+  const stream=svgEl("path",{id:"stream",d:"M60 134 Q78 140 84 170 Q88 190 96 206",fill:"none",stroke:"#7a5426","stroke-width":"6","stroke-linecap":"round",opacity:"0"},LW);
+  for(let i=0;i<9;i++){
+    const c=svgEl("circle",{cx:(92+(i%3)*10).toFixed(0),cy:(208+Math.floor(i/3)*10).toFixed(0),r:(3+i%3).toFixed(0),fill:"#7a5426",class:"drift",style:`animation-delay:${(i*0.65).toFixed(2)}s`,opacity:"0"},LW);
+    blobs.push(c);
+  }
+  // eceng gondok: 3 baris di permukaan; muncul dari tepi limbah (kiri) ke kanan
+  const LA=$("#layerA");
+  const rows=[{y:160,s:.5},{y:176,s:.66},{y:196,s:.84}];
+  const rr=mulberry(5); let id=0;
+  rows.forEach((r,ri)=>{
+    const n=[19,16,13][ri];
+    for(let i=0;i<n;i++){
+      const x=70+i*(680/(n-1))+ (rr()-0.5)*14 + (ri===1?10:0);
+      const g=svgEl("g",{class:"ros",opacity:"0"},LA);
+      const b=svgEl("g",{class:"bob",style:`animation-delay:${(rr()*3).toFixed(2)}s`},g);
+      if(ri===2) svgEl("use",{href:"#egr",transform:`translate(${x.toFixed(1)} ${r.y}) scale(${r.s})`},b);
+      svgEl("use",{href:(id%4===1?"#egf":"#eg"),transform:`translate(${x.toFixed(1)} ${r.y}) scale(${r.s})`},b);
+      ros.push({g,x,key:x+(rr()-0.5)*60}); id++;
+    }
+  });
+  ros.sort((a,b)=>a.key-b.key);
+}
+function sceneState(t){
+  const sc=PARAM.skenario[S.sk||"sedang"];
+  if(S.stage==="level2" && L2){
+    const f=L2.limbah0>0?L2.limbah/L2.limbah0:1;
+    return { NA:L2.NA, NB:L2.NB, cover:Math.min(1,L2.NA/CAP), fracB:0.6*L2.NB/L2.NB0, fracPeak:0.6*L2.peakNB/L2.NB0, over:false,
+      sc:{limbah:L2.limbah, kekeruhan:sc.kekeruhan*(0.3+0.7*f)}, nF:Math.round(fishes.length*L2.F/100), day:L2.day };
+  }
+  if(!S.p) return {cover:0, NA:0, NB:0, fracB:0, over:false};
+  const mode=S.logUnlocked?"log":"exp";
+  const NA= mode==="log"? logi(S.p.A,t) : expo(S.p.A,t);
+  const NB= mode==="log"? logB(t) : expo(S.p.B,t);
+  const NBpeak= mode==="log"? peakB(t) : NB;
+  return { NA, NB, cover:Math.min(1,NA/CAP), fracB:Math.min(1,NB/MAXKB), fracPeak:Math.min(1,NBpeak/MAXKB), over: mode==="exp" && NA>CAP, sc };
+}
+function updateScene(){
+  const st=sceneState(S.t);
+  const sc=st.sc||PARAM.skenario[S.sk||"sedang"];
+  const cover=st.cover;
+  const nR=Math.round(cover*ros.length);
+  ros.forEach((r,i)=>r.g.setAttribute("opacity", i< nR ? "1":"0"));
+  const cnt=f=> f>0 ? Math.max(1,Math.round(stems.length*Math.sqrt(f))) : 0;
+  const nS = st.NB>=1 ? cnt(st.fracB) : 0, nP = st.fracPeak ? cnt(st.fracPeak) : nS;
+  stems.forEach((o,i)=>{ const alive=i<nS, dead=!alive && i<nP; o.g.setAttribute("opacity", alive||dead ? "0.95":"0"); o.live.style.display=alive?"":"none"; o.dead.style.display=dead?"":"none"; });
+  const nF = st.nF!=null ? st.nF : Math.round(fishes.length*Math.pow(1-cover,1.3)*(1-0.45*sc.limbah));
+  fishes.forEach((g,i)=>g.setAttribute("opacity", i<nF ? "1":"0"));
+  $("#murk").setAttribute("opacity",(Math.min(.8, sc.kekeruhan + 0.25*cover)).toFixed(2));
+  $("#murkTop").setAttribute("opacity",(sc.kekeruhan*0.6).toFixed(2));
+  $("#shade").setAttribute("opacity",(0.45*cover).toFixed(2));
+  $("#stream").setAttribute("opacity", sc.limbah>0 ? (0.35+0.6*sc.limbah).toFixed(2) : "0");
+  $("#stream").setAttribute("stroke-width", (3+7*sc.limbah).toFixed(1));
+  blobs.forEach((b,i)=>b.setAttribute("opacity", i < Math.round(9*sc.limbah) ? "0.85":"0"));
+  $("#chipDay").textContent=`Hari ke-${st.day!=null?st.day:S.t}`;
+  $("#chipCover").textContent=`Tutupan permukaan: ${Math.round(cover*100)}%`;
+  $("#chipFish").textContent=`Ikan: ${nF}`;
+  $("#tLabel").textContent=`Waktu: ${st.day!=null?st.day:S.t} hari`;
+  const ob=$("#overflow");
+  if(st.over){ ob.hidden=false; ob.innerHTML=`Rumus eksponensial: biomassa A ≈ ${fmt(st.NA)} kg, ${fmt(st.NA/CAP)} kali kapasitas tutupan penuh situ (${fmt(CAP)} kg). Tidak mungkin terjadi.`; }
+  else ob.hidden=true;
+}
+function cheer(){ const c=$("#cheerFish"); c.setAttribute("opacity","1"); c.classList.remove("cheer"); void c.getBoundingClientRect(); c.classList.add("cheer"); setTimeout(()=>c.setAttribute("opacity","0"),900); }
+
+/* ---------- grafik ---------- */
+function niceStep(range, target){ const raw=range/target; const p=Math.pow(10,Math.floor(Math.log10(raw))); const f=raw/p; return (f<1.5?1:f<3?2:f<7?5:10)*p; }
+function axisFmt(v){ if(v>=1e6) return (v/1e6).toLocaleString("id-ID",{maximumFractionDigits:1})+" jt"; if(v>=1e3) return (v/1e3).toLocaleString("id-ID",{maximumFractionDigits:1})+" rb"; return v.toLocaleString("id-ID"); }
+function drawChart(){
+  if(S.stage==="level2") return drawChartL2();
+  const svg=$("#chart"); svg.innerHTML="";
+  const W=640,H=330,m={l:74,r:60,t:16,b:50};
+  const pw=W-m.l-m.r, ph=H-m.t-m.b;
+  if(!S.hitungSelesai || !S.p){
+    svgEl("rect",{x:m.l,y:m.t,width:pw,height:ph,fill:"#f6fcf9",stroke:"#c9e4da","stroke-dasharray":"5 5",rx:"10"},svg);
+    const t=svgEl("text",{x:m.l+pw/2,y:m.t+ph/2,"text-anchor":"middle","font-size":"14",fill:"#40605a"},svg);
+    t.textContent="Grafik terbuka setelah semua hitungan benar";
+    $("#chartNote").textContent="";
+    return;
+  }
+  const T=S.T, A=S.p.A, B=S.p.B, mode=S.chartMode;
+  const fA= mode==="exp"? t=>expo(A,t) : t=>logi(A,t);
+  const fB= mode==="exp"? t=>expo(B,t) : t=>logB(t);
+  const x=t=>m.l+pw*t/T;
+  let y, yt=[];
+  if(mode==="exp"){
+    const lo=Math.floor(Math.log10(Math.min(A.N0,B.N0)));
+    const hi=Math.ceil(Math.log10(Math.max(fA(T),fB(T),A.K,B.K))+1e-9);
+    y=v=>m.t+ph*(1-(Math.log10(Math.max(v,1e-12))-lo)/(hi-lo));
+    const st=Math.max(1,Math.ceil((hi-lo)/8));
+    for(let k=lo;k<=hi;k+=st) yt.push({v:Math.pow(10,k),k});
+  } else {
+    const top=Math.max(A.K,B.K)*1.12, st=niceStep(top,5);
+    const ymax=Math.ceil(top/st)*st;
+    y=v=>m.t+ph*(1-v/ymax);
+    for(let v=0; v<=ymax+1e-9; v+=st) yt.push({v});
+  }
+  // grid + sumbu Y
+  yt.forEach(o=>{
+    const yy=y(o.v);
+    svgEl("line",{x1:m.l,x2:m.l+pw,y1:yy,y2:yy,stroke:"#e2efe9"},svg);
+    const tx=svgEl("text",{x:m.l-8,y:yy+4,"text-anchor":"end","font-size":"11.5"},svg);
+    if(mode==="exp"){ tx.textContent="10"; const sp=svgEl("tspan",{dy:"-5","font-size":"8.5"},tx); sp.textContent=String(o.k); }
+    else tx.textContent=axisFmt(o.v);
+  });
+  const xs=niceStep(T,7);
+  for(let t=0;t<=T+1e-9;t+=xs){
+    svgEl("line",{x1:x(t),x2:x(t),y1:m.t+ph,y2:m.t+ph+5,stroke:"#40605a"},svg);
+    const tx=svgEl("text",{x:x(t),y:m.t+ph+18,"text-anchor":"middle","font-size":"11.5"},svg); tx.textContent=t.toLocaleString("id-ID");
+  }
+  svgEl("line",{x1:m.l,x2:m.l+pw,y1:m.t+ph,y2:m.t+ph,stroke:"#40605a","stroke-width":"1.4"},svg);
+  svgEl("line",{x1:m.l,x2:m.l,y1:m.t,y2:m.t+ph,stroke:"#40605a","stroke-width":"1.4"},svg);
+  const xl=svgEl("text",{x:m.l+pw/2,y:H-8,"text-anchor":"middle","font-size":"12.5","font-weight":"700"},svg); xl.textContent="Waktu (hari)";
+  const yl=svgEl("text",{x:16,y:m.t+ph/2,"text-anchor":"middle","font-size":"12.5","font-weight":"700",transform:`rotate(-90 16 ${m.t+ph/2})`},svg);
+  yl.textContent = mode==="exp" ? "Biomassa basah (kg, skala log)" : "Biomassa basah (kg)";
+  // garis K
+  [["A",A.K,"#15803d"],["B",B.K,"#c2410c"]].forEach(([n,K,c])=>{
+    const yy=y(K);
+    svgEl("line",{x1:m.l,x2:m.l+pw,y1:yy,y2:yy,stroke:"#5b6b68","stroke-width":"2","stroke-dasharray":"1.5 4","stroke-linecap":"round"},svg);
+    const tx=svgEl("text",{x:m.l+pw+4,y:yy+4,"font-size":"11","font-weight":"700",fill:c},svg); tx.textContent="K"+n;
+  });
+  // kurva
+  const clip=svgEl("clipPath",{id:"plotclip"},svg); svgEl("rect",{x:m.l,y:m.t-2,width:pw,height:ph+4},clip);
+  const path=f=>{ let d=""; for(let i=0;i<=240;i++){ const t=T*i/240; d+=(i?"L":"M")+x(t).toFixed(1)+" "+y(f(t)).toFixed(1); } return d; };
+  svgEl("path",{d:path(fB),fill:"none",stroke:"#c2410c","stroke-width":"3.2","stroke-dasharray":"9 6","clip-path":"url(#plotclip)"},svg);
+  svgEl("path",{d:path(fA),fill:"none",stroke:"#15803d","stroke-width":"3.4","clip-path":"url(#plotclip)"},svg);
+  // penanda waktu
+  const xt=x(S.t);
+  svgEl("line",{x1:xt,x2:xt,y1:m.t,y2:m.t+ph,stroke:"#0b6e82","stroke-width":"1.5","stroke-dasharray":"4 3"},svg);
+  svgEl("circle",{cx:xt,cy:y(fA(S.t)),r:"5",fill:"#15803d",stroke:"#fff","stroke-width":"2"},svg);
+  svgEl("rect",{x:xt-5,y:y(fB(S.t))-5,width:"10",height:"10",fill:"#c2410c",stroke:"#fff","stroke-width":"2"},svg);
+  const badge=svgEl("text",{x:m.l+8,y:m.t+14,"font-size":"11","font-weight":"700",fill:"#7a4a00"},svg); badge.textContent="ILUSTRASI";
+  $("#chartNote").innerHTML = mode==="exp"
+    ? `Hari ke-${S.t}: A = ${fmt(fA(S.t))} kg, B = ${fmt(fB(S.t))} kg (rumus eksponensial). Garis titik-titik menunjukkan K; perhatikan kurva yang menembusnya.`
+    : `Hari ke-${S.t}: A = ${fmt(fA(S.t))} kg, B = ${fmt(fB(S.t))} kg (model logistik, N tidak melampaui K).`;
+}
+
+/* ---------- pertanyaan hitung ---------- */
+const QS=[{sp:"A",k:"n"},{sp:"A",k:"N"},{sp:"A",k:"r"},{sp:"B",k:"n"},{sp:"B",k:"N"},{sp:"B",k:"r"}];
+const QINFO={
+  n:{lbl:sp=>`Berapa kali biomassa ${NAMA[sp]} berlipat dua selama t = ${S.T} hari? (jumlah penggandaan, n)`, unit:"kali", hint:"Jumlah penggandaan = lama waktu ÷ waktu penggandaan. Pastikan satuan keduanya sama."},
+  N:{lbl:sp=>`Berapa biomassa ${NAMA[sp]} setelah ${S.T} hari menurut rumus eksponensial? (N)`, unit:"kg", hint:"Setiap penggandaan mengalikan biomassa dengan 2. N = N₀ × 2ⁿ. Bilangan besar boleh ditulis 4,52e15 atau 4,52 × 10^15."},
+  r:{lbl:sp=>`Berapa laju pertumbuhan intrinsik ${NAMA[sp]}? (r)`, unit:"per hari", hint:"r = ln 2 ÷ waktu penggandaan. Gunakan logaritma natural (tombol ln)."}
+};
+function diagnose(sp,k,v){
+  const p=S.p[sp], T=S.T, key=kunci(p,T), n=key.n;
+  const C=[];
+  if(k==="n"){
+    C.push([ (T/365)/p.td, "Satuan waktu tercampur: t ditulis dalam tahun, sedangkan waktu penggandaan dalam hari. Samakan satuannya.", "satuan hari/tahun"]);
+    C.push([ T*365/p.td, "Satuan waktu tercampur: ada konversi hari ↔ tahun yang tidak perlu.", "satuan hari/tahun"]);
+    C.push([ p.td/T, "Pembagian terbalik: yang dibagi adalah lama waktu, pembaginya waktu satu kali penggandaan.", "pembagian terbalik"]);
+    C.push([ T*p.td, "Anda mengalikan. Jumlah penggandaan diperoleh dengan membagi.", "operasi keliru"]);
+  }
+  if(k==="N"){
+    C.push([ p.N0*2*n, "Lupa memangkatkan: 2 harus dipangkatkan n (2ⁿ), bukan dikalikan dengan n.", "lupa memangkatkan"]);
+    C.push([ Math.pow(2,n), "Lupa mengalikan dengan biomassa awal N₀.", "lupa N₀"]);
+    C.push([ p.N0*n*n, "Basis dan pangkat tertukar: yang benar 2 pangkat n, bukan n pangkat 2.", "basis-pangkat tertukar"]);
+    C.push([ p.N0*Math.exp(n), "Basis pangkat keliru: rumus penggandaan memakai basis 2. Basis e hanya dipasangkan dengan r × t.", "basis e"]);
+    C.push([ p.N0*Math.pow(10,n), "Basis pangkat keliru: rumus penggandaan memakai basis 2, bukan 10.", "basis 10"]);
+    C.push([ p.N0*Math.pow(2,(T/365)/p.td), "Satuan waktu tercampur: t dalam tahun, waktu penggandaan dalam hari.", "satuan hari/tahun"]);
+    C.push([ p.N0+Math.pow(2,n), "Anda menjumlahkan N₀ dengan 2ⁿ. N₀ dikalikan, bukan ditambahkan.", "operasi keliru"]);
+  }
+  if(k==="r"){
+    C.push([ Math.log10(2)/p.td, "Memakai log₁₀ padahal rumus memakai ln (logaritma natural, tombol ln).", "log10 bukan ln"]);
+    C.push([ LN2*365/p.td, "Satuan: hasil Anda per tahun, padahal yang diminta per hari.", "satuan hari/tahun"]);
+    C.push([ p.td/LN2, "Pembagian terbalik: r bersatuan per hari, jadi waktu penggandaan menjadi pembagi.", "pembagian terbalik"]);
+    C.push([ 1/p.td, "Lupa ln 2: 1/t_d adalah jumlah penggandaan per hari, bukan laju pertumbuhan intrinsik.", "lupa ln 2"]);
+    C.push([ LN2*p.td, "Anda mengalikan. r diperoleh dengan membagi.", "operasi keliru"]);
+    C.push([ key.r*100, "Tampaknya ditulis dalam persen. Tulis sebagai bilangan desimal per hari.", "persen"]);
+    C.push([ 2/p.td, "Memakai angka 2, bukan ln 2.", "lupa ln 2"]);
+  }
+  for(const [val,msg,j] of C){ if(isFinite(val) && val!==0 && within(v,val)) return {msg,j}; }
+  if(k==="N"){
+    const nS=S.ans[sp+"n"];
+    const cand=[Math.round(n), Math.floor(n), +n.toFixed(1), +n.toFixed(2)];
+    if(nS!=null) cand.push(nS.val);
+    for(const nn of cand){ if(within(v,p.N0*Math.pow(2,nn))) return {msg:`Pembulatan terlalu dini: n dibulatkan sebelum dipangkatkan. Pada fungsi eksponensial selisih kecil pada n menjadi selisih besar pada N. Gunakan n dengan minimal 3 angka desimal.`, j:"pembulatan dini", soft:!PARAM.pembulatanDiniKurangiNyawa}; }
+    const ratio=v/key.N; if(ratio>0 && Math.abs(Math.log10(ratio))>=0.9 && Math.abs(Math.log10(ratio)-Math.round(Math.log10(ratio)))<0.02)
+      return {msg:"Orde besarnya meleset (selisih kelipatan 10). Periksa penulisan pangkat sepuluh atau letak koma.", j:"penulisan pangkat 10"};
+  }
+  const generic={n:"Belum tepat. Periksa lagi berapa kali biomassa berlipat dua dalam rentang waktu itu.",
+                 N:"Belum tepat. Periksa urutan langkah: hitung 2 pangkat n terlebih dahulu, lalu kalikan dengan N₀.",
+                 r:"Belum tepat. Periksa jenis logaritma dan satuan waktunya."};
+  return {msg:generic[k], j:"lainnya"};
+}
+function formulaHTML(sp,k){
+  const p=S.p[sp], key=kunci(p,S.T);
+  if(k==="n") return `n = t / t<sub>d</sub> = ${S.T} / ${fmt(p.td)} = ${fmt(key.n)} kali`;
+  if(k==="N") return `N = N<sub>0</sub> × 2<sup>n</sup> = ${fmt(p.N0)} × 2<sup>${fmt(key.n)}</sup> = ${fmt(key.N)} kg`;
+  return `r = ln 2 / t<sub>d</sub> = 0,6931 / ${fmt(p.td)} = ${fmt(key.r)} per hari<br><span class="muted">Cek: N<sub>0</sub> × e<sup>r·t</sup> memberi N yang sama.</span>`;
+}
+
+/* ---------- pilihan ganda ---------- */
+function buildMcq(){
+  return [
+    { id:"log", q:()=>`Raka menghitung laju pertumbuhan eceng gondok dengan tombol "log" pada kalkulator: r = log 2 / ${fmt(S.p.A.td)} = ${fmt(Math.log10(2)/S.p.A.td)} per hari. Apa kesalahannya?`,
+      o:[ {t:"Tombol \"log\" menghitung logaritma basis 10, padahal rumus r = ln 2 / t_d memakai logaritma natural (basis e).", ok:1},
+          {t:"Seharusnya t_d yang dibagi log 2, bukan sebaliknya.", fb:"Bila dibalik, satuannya menjadi \"hari\", bukan \"per hari\". Periksa bagian lain rumusnya."},
+          {t:"Seharusnya t_d diubah ke tahun lebih dulu.", fb:"Satuan hari tidak salah; r hanya akan bersatuan per hari. Periksa bagian lain rumusnya."},
+          {t:"Tidak ada kesalahan, log dan ln memberi hasil yang sama.", fb:"log 2 ≈ 0,301 sedangkan ln 2 ≈ 0,693. Keduanya berbeda."} ]},
+    { id:"unit", q:()=>`Sari menulis n = t / t_d dengan t = 1 (tahun) dan t_d = ${fmt(S.p.A.td)} (hari), sehingga n = ${fmt(1/S.p.A.td)}. Apa yang terjadi?`,
+      o:[ {t:"n jauh terlalu kecil karena t dan t_d memakai satuan berbeda; keduanya harus dalam satuan yang sama.", ok:1},
+          {t:"n sudah benar karena satu tahun memang satu satuan waktu.", fb:"Hasil bagi dua besaran waktu hanya bermakna bila satuannya sama."},
+          {t:"n terlalu besar sehingga N melampaui K.", fb:"Bandingkan n milik Sari dengan n yang Anda hitung sendiri."},
+          {t:"Tidak masalah asalkan r dihitung dengan ln.", fb:"r tidak memperbaiki n yang keliru; keduanya dihitung terpisah."} ]},
+    { id:"K", q:()=>`Rumus eksponensial memberi biomassa eceng gondok ${fmt(kunci(S.p.A,S.T).N)} kg setelah ${S.T} hari, padahal daya dukung situ (ILUSTRASI) hanya K = ${fmt(S.p.A.K)} kg. Mengapa hasil rumus bisa melampaui K?`,
+      o:[ {t:"Model eksponensial menganggap r tetap dan sumber daya (ruang permukaan, nutrien, cahaya) tidak terbatas, sehingga tidak ada yang memperlambat pertumbuhan.", ok:1},
+          {t:"Karena perhitungannya salah; rumus yang benar tidak pernah melampaui K.", fb:"Perhitungan Anda sudah diperiksa benar. Pikirkan asumsi di balik rumusnya."},
+          {t:"Karena K ikut naik seiring biomassa bertambah.", fb:"Dalam model ini K tetap untuk satu skenario; K ditentukan lingkungan, bukan oleh populasinya."},
+          {t:"Karena di alam eceng gondok memang tumbuh eksponensial tanpa batas.", fb:()=>`Hasil rumus setara ${fmt(kunci(S.p.A,S.T).N/CAP)} kali kapasitas tutupan penuh situ. Pikirkan apa yang membatasi.`} ]},
+    { id:"half", q:()=>"Pada model logistik dN/dt = rN(1 − N/K), kapan pertambahan biomassa per hari paling besar?",
+      o:[ {t:"Saat N = K/2.", ok:1},
+          {t:"Saat N hampir sama dengan K.", fb:"Saat N mendekati K, faktor (1 − N/K) mendekati nol."},
+          {t:"Saat N masih sangat kecil.", fb:"Saat N kecil, faktor rN juga kecil walaupun (1 − N/K) hampir 1."},
+          {t:"Pertambahannya selalu sama setiap hari.", fb:"Itu ciri pertumbuhan linear, bukan logistik."} ]}
+  ].map(m=>({...m, order: shuffle([0,1,2,3]), tried:[] }));
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+/* ---------- panel ---------- */
+const PRED_ICON={
+  A:`<svg viewBox="-60 -70 120 80" aria-hidden="true"><rect x="-60" y="-2" width="120" height="14" fill="#7fd3e0"/><use href="#egf" transform="translate(-18 2) scale(.9)"/><use href="#eg" transform="translate(26 4) scale(.75)"/></svg>`,
+  B:`<svg viewBox="-60 -70 120 80" aria-hidden="true"><rect x="-60" y="-70" width="120" height="80" fill="#2aa3bb"/><rect x="-60" y="2" width="120" height="8" fill="#a77b4f"/><use href="#hy" transform="translate(-22 4) scale(.6)"/><use href="#hy" transform="translate(4 4) scale(.65)"/><use href="#hy" transform="translate(30 4) scale(.55)"/></svg>`
+};
+function scenIcon(k){
+  const s=PARAM.skenario[k];
+  const water=["#4fc3d6","#5aa9a0","#6f8a5a"][["jernih","sedang","berat"].indexOf(k)];
+  let drops=""; for(let i=0;i<Math.round(s.limbah*6);i++) drops+=`<circle cx="${18+i*6}" cy="${30+(i%2)*6}" r="3" fill="#7a5426"/>`;
+  return `<svg viewBox="0 0 120 60" aria-hidden="true"><rect width="120" height="22" fill="#bfe8ff"/><circle cx="102" cy="11" r="7" fill="#ffd23f"/><rect y="22" width="120" height="38" fill="${water}"/><rect x="0" y="16" width="16" height="6" rx="2" fill="#7d8a8c"/>${drops}<use href="#fishG" fill="#fb923c" transform="translate(84 44) scale(.6)"/></svg>`;
+}
+function setSteps(){
+  const order=["mulai","prediksi","hitung","telaah","refleksi","level2"], idx=order.indexOf(S.stage);
+  document.querySelectorAll("#steps li").forEach((li,i)=>{ li.className = i<idx?"done":(i===idx?"now":""); if(i===idx) li.setAttribute("aria-current","step"); else li.removeAttribute("aria-current"); });
+}
+function renderParams(){
+  const pc=$("#paramCard");
+  if(!S.p){ pc.hidden=true; return; }
+  pc.hidden=false;
+  const A=S.p.A,B=S.p.B;
+  const items=[["Skenario",PARAM.skenario[S.sk].nama],["Waktu t",`${S.T} hari`],["N₀ A",`${fmt(A.N0)} kg`],["t_d A",`${fmt(A.td)} hari`],["N₀ B",`${fmt(B.N0)} kg`],["t_d B",`${fmt(B.td)} hari`]];
+  if(S.stage==="telaah"||S.stage==="refleksi"||S.stage==="level2"){ items.push(["K A",`${fmt(A.K)} kg`],["K B",`${fmt(B.K)} kg`]); }
+  $("#paramGrid").innerHTML=items.map(([k,v])=>`<div class="param"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+}
+function render(){
+  setSteps(); drawHearts(); renderParams(); renderNotes();
+  const P=$("#panel");
+  if(S.stage==="mulai") P.innerHTML=viewStart();
+  else if(S.stage==="prediksi") P.innerHTML=viewPred();
+  else if(S.stage==="hitung") P.innerHTML=viewHitung();
+  else if(S.stage==="telaah") P.innerHTML=viewTelaah();
+  else if(S.stage==="level2") P.innerHTML=viewL2();
+  else P.innerHTML=viewRefl();
+  bindPanel(); if(S.stage==="level2") bindL2();
+  const lv2=S.stage==="level2";
+  $("#chartSeg").hidden=lv2; $("#legendL1").hidden=lv2; $("#legendL2").hidden=!lv2;
+  const sl=$("#tSlider"); sl.max=S.T; sl.disabled=!S.hitungSelesai||lv2; sl.value=lv2&&L2?L2.day:S.t;
+  $("#sliderNote").textContent = lv2 ? `Di Level 2 waktu maju per giliran (${PARAM2.hariPerGiliran} hari). Adegan mengikuti keadaan situ Anda.` : S.hitungSelesai ? (S.logUnlocked ? "Adegan mengikuti model logistik (dibatasi K)." : "Adegan mengikuti rumus eksponensial yang Anda hitung. Geser untuk melihat kapan rumus melampaui kapasitas situ.") : "Penggeser waktu terbuka setelah semua perhitungan benar.";
+  $("#mLog").disabled=!S.logUnlocked;
+  $("#mExp").setAttribute("aria-pressed",S.chartMode==="exp"); $("#mLog").setAttribute("aria-pressed",S.chartMode==="log");
+  updateScene(); drawChart();
+}
+function viewStart(){
+  return `<h2>Pilih skenario situ</h2>
+  <p style="margin-top:0">Sebuah situ menerima limbah organik sehingga nutrien meningkat. Di situ ada dua tumbuhan air: <b>A, eceng gondok</b> (<i>Eichhornia crassipes</i>) yang mengapung dan tumbuh cepat, dan <b>B, rumput pita</b> (<i>Vallisneria spiralis</i>), tumbuhan terendam yang berakar di dasar perairan. Bila permukaan tertutup eceng gondok atau air keruh, cahaya tidak sampai ke dasar sehingga rumput pita tidak dapat berfotosintesis dan akhirnya mati.</p>
+  <div class="choices" role="group" aria-label="Skenario">
+    ${Object.keys(PARAM.skenario).map(k=>`<button type="button" class="choice" data-sk="${k}" aria-pressed="${S.sk===k}">${scenIcon(k)}${PARAM.skenario[k].nama}</button>`).join("")}
+  </div>
+  <div class="row" style="margin-top:12px">
+    <label for="inT"><b>Lama waktu t</b></label>
+    <input type="number" id="inT" min="30" max="1095" step="1" value="${S.T}" style="width:110px;padding:7px 9px;border:1.5px solid #9cc7ba;border-radius:10px"> <span class="muted">hari (bawaan 365 = 1 tahun)</span>
+  </div>
+  <p class="small muted">Anda punya ${PARAM.nyawaAwal} nyawa. Tiap jawaban salah pada tahap Hitung dan Telaah mengurangi 1 nyawa. Tahap Prediksi tidak mengurangi nyawa.</p>
+  <div class="row"><button class="btn go" id="btnStart" type="button" ${S.sk?"":"disabled"}>Mulai Level 1</button>
+  <button class="btn alt" id="btnSkipL2" type="button">Lompat ke Level 2: Pengelola Situ</button></div>
+  <p class="small muted">Level 1 adalah latihan menghitung. Level 2 memakai hasilnya untuk mengelola situ selama satu tahun.</p>`;
+}
+function viewPred(){
+  return `<h2>1 · Prediksi</h2>
+  <p style="margin-top:0">Sebelum menghitung, tebak: dalam skenario <b>${PARAM.skenario[S.sk].nama}</b>, tumbuhan mana yang paling dominan (biomassa terbesar) setelah ${S.T} hari?</p>
+  <div class="choices" role="group" aria-label="Prediksi tumbuhan dominan">
+    <button type="button" class="choice" data-pred="A" aria-pressed="${S.pred.pilih==="A"}">${PRED_ICON.A}A · eceng gondok</button>
+    <button type="button" class="choice" data-pred="B" aria-pressed="${S.pred.pilih==="B"}">${PRED_ICON.B}B · rumput pita</button>
+  </div>
+  <label for="inAlasan" style="display:block;margin:12px 0 4px"><b>Alasan Anda</b> <span class="muted small">(minimal 20 karakter)</span></label>
+  <textarea id="inAlasan" placeholder="Misalnya: hubungkan dengan nutrien, cahaya, atau waktu penggandaan…">${esc(S.pred.alasan)}</textarea>
+  <div class="row" style="margin-top:10px"><button class="btn go" id="btnPred" type="button">Simpan prediksi dan mulai menghitung</button></div>
+  <div id="predFb"></div>`;
+}
+function viewHitung(){
+  let h=`<h2>2 · Hitung</h2><p style="margin-top:0" class="small">Jawab berurutan untuk A, lalu B. Gunakan koma untuk desimal (contoh 0,0693). Bilangan besar boleh ditulis <code>4,52e15</code> atau <code>4,52 × 10^15</code>. Toleransi ${Math.round(PARAM.toleransi*100)}%.</p>`;
+  QS.forEach((q,i)=>{
+    if(i>S.qi) return;
+    const id=q.sp+q.k, done=S.ans[id]&&S.ans[id].ok, info=QINFO[q.k];
+    const icon= q.sp==="A" ? `<svg width="30" height="26" viewBox="-26 -44 52 48" aria-hidden="true"><use href="#eg"/></svg>` : `<svg width="22" height="30" viewBox="-22 -116 44 122" aria-hidden="true"><use href="#hy"/></svg>`;
+    h+=`<div class="q ${done?"ok":""}" id="q_${id}">
+      <div class="who">${icon}<span>${q.sp}(${["n","N","r"].indexOf(q.k)===0?"a":q.k==="N"?"b":"c"})</span></div>
+      <div>${info.lbl(q.sp)}</div>`;
+    if(done){
+      h+=`<div class="fb good">Benar: ${fmt(S.ans[id].val)} ${info.unit}</div><div class="formula">${formulaHTML(q.sp,q.k)}</div>`;
+    } else {
+      h+=`<div class="inrow"><input type="text" id="in_${id}" inputmode="decimal" autocomplete="off" aria-label="Jawaban ${id}" value="${esc(S.ans[id]?S.ans[id].raw:"")}"><span class="unit">${info.unit}</span><button class="btn" type="button" data-check="${i}">Periksa</button></div>
+      <div class="read" id="rd_${id}"></div>
+      <details class="hint"><summary>Petunjuk</summary>${info.hint}</details>
+      <div id="fb_${id}" role="status"></div>`;
+    }
+    h+=`</div>`;
+  });
+  if(S.qi>=QS.length){
+    h+=`<div class="fb good" style="margin-top:10px">Semua perhitungan benar. Geser waktu pada adegan dan lihat grafiknya. Perhatikan garis K.</div>
+    <div class="row" style="margin-top:10px"><button class="btn go" id="btnToTelaah" type="button">Lanjut ke Telaah</button></div>`;
+  }
+  return h;
+}
+function viewTelaah(){
+  let h=`<h2>3 · Telaah</h2>`;
+  S.mcq.forEach((m,i)=>{
+    if(i>S.mi) return;
+    const solved=m.solved;
+    h+=`<div class="q ${solved?"ok":""}" id="mq_${i}"><div><b>Soal ${i+1}.</b> ${m.q()}</div><div class="opts">`;
+    m.order.forEach(oi=>{
+      const o=m.o[oi]; const cls = solved && o.ok ? "right" : (m.tried.includes(oi)?"wrong":"");
+      h+=`<button type="button" class="opt ${cls}" data-mcq="${i}" data-o="${oi}" ${solved||m.tried.includes(oi)?"disabled":""}>${esc(o.t)}</button>`;
+    });
+    h+=`</div><div id="mfb_${i}" role="status">${m.lastFb?`<div class="fb ${m.lastFb.ok?"good":"bad"}">${esc(m.lastFb.t)}</div>`:""}</div></div>`;
+  });
+  if(S.mi>=S.mcq.length){
+    const A=S.p.A,B=S.p.B,T=S.T;
+    const eA=expo(A,T), eB=expo(B,T), lA=logi(A,T), lB=logB(T);
+    h+=`<div class="card" style="margin-top:12px;border-color:#cdb8f5;background:#fbf8ff">
+      <h3 style="color:var(--lilac)">Hasil dengan batas daya dukung (logistik)</h3>
+      <div class="formula">N(t) = K / (1 + ((K − N<sub>0</sub>) / N<sub>0</sub>) × e<sup>−r·t</sup>)</div>
+      <div class="tbl" style="margin-top:8px"><table>
+        <thead><tr><th></th><th>N eksponensial (kg)</th><th>K (kg)</th><th>N logistik hari ke-${T} (kg)</th><th>% dari K</th></tr></thead>
+        <tbody>
+          <tr><th>A eceng gondok</th><td>${fmt(eA)}</td><td>${fmt(A.K)}</td><td>${fmt(lA)}</td><td>${fmt(100*lA/A.K)}%</td></tr>
+          <tr><th>B rumput pita</th><td>${fmt(eB)}</td><td>${fmt(B.K)}</td><td>${fmt(lB)}</td><td>${fmt(100*lB/B.K)}%</td></tr>
+        </tbody></table></div>
+      <p class="small">Tutupan eceng gondok menurut logistik: <b>${fmt(100*Math.min(1,lA/CAP))}%</b> permukaan situ (ILUSTRASI). Grafik kini bisa dialihkan ke <b>Logistik</b>, dan adegan mengikuti model logistik.</p>
+      <div class="formula" style="margin-top:6px">Rumput pita: dN<sub>B</sub>/dt = r<sub>B</sub> N<sub>B</sub> (1 − N<sub>B</sub>/K<sub>B</sub>) − m · c(t) · N<sub>B</sub></div>
+      <p class="small">Rumput pita (<i>Vallisneria spiralis</i>) tumbuh di dasar perairan. Ketika tikar eceng gondok menutup permukaan, cahaya tidak sampai ke dasar sehingga rumput pita tidak dapat berfotosintesis lalu mati. Di model ini efek itu ditulis sebagai suku kematian m · c(t), dengan c(t) = tutupan permukaan oleh eceng gondok dan m = ${fmt(PARAM.naungan.m_per_hari)} per hari (ILUSTRASI). Puncak biomassa rumput pita: ${fmt(peakB(T))} kg; hari ke-${T}: ${fmt(lB)} kg.</p>
+      <p class="small muted" style="margin-bottom:0">Pada adegan, rumput pita yang mati digambar cokelat dan rebah. Rumus eksponensial pada tahap Hitung tidak memuat efek naungan ini.</p>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="btn go" id="btnToRefl" type="button">Lanjut ke Refleksi</button></div>`;
+  }
+  return h;
+}
+function dom(fA,fB){ return fA>=fB?"A":"B"; }
+function viewRefl(){
+  const T=S.T, dE=dom(expo(S.p.A,T),expo(S.p.B,T)), dL=dom(logi(S.p.A,T),logB(T));
+  const nm=k=>k==="A"?"A (eceng gondok)":"B (rumput pita)";
+  const okE=S.pred.pilih===dE, okL=S.pred.pilih===dL;
+  return `<h2>4 · Refleksi</h2>
+  <div class="verdict"><div>
+    <div><b>Prediksi Anda:</b> ${nm(S.pred.pilih)}</div>
+    <div class="small muted">Alasan: ${esc(S.pred.alasan)}</div>
+    <div style="margin-top:6px"><b>Menurut rumus eksponensial:</b> dominan ${nm(dE)} ${okE?"· sesuai prediksi":"· berbeda dari prediksi"}</div>
+    <div><b>Menurut model logistik (dengan K):</b> dominan ${nm(dL)} ${okL?"· sesuai prediksi":"· berbeda dari prediksi"}</div>
+  </div></div>
+  <p class="small">Nyawa tersisa: <b>${S.lives}</b> dari ${PARAM.nyawaAwal}. ${S.salah.length?`Jenis kesalahan yang muncul: ${[...new Set(S.salah)].join(", ")}.`:"Tanpa kesalahan."}</p>
+  ${["Apakah prediksi awal Anda sesuai dengan hasil perhitungan? Bagian alasan mana yang terbukti dan mana yang perlu diperbaiki?",
+     "Asumsi apa dalam model eksponensial yang tidak berlaku di situ ini? Mengapa model logistik memberi hasil yang berbeda?",
+     "Usulkan satu tindakan pengelolaan situ, dan jelaskan parameter mana (t_d atau K) yang akan berubah karenanya."]
+    .map((q,i)=>`<label for="rf${i}" style="display:block;margin:10px 0 4px"><b>${i+1}.</b> ${q}</label><textarea id="rf${i}" data-rf="${i}">${esc(S.refl[i])}</textarea>`).join("")}
+  <div class="row" style="margin-top:12px">
+    <button class="btn" id="btnCopy" type="button">Salin jawaban saya</button>
+    <button class="btn alt" id="btnAgain" type="button">Main lagi (parameter baru)</button>
+    <button class="btn go" id="btnToL2" type="button">Lanjut ke Level 2: Pengelola Situ</button>
+  </div>
+  <div id="copyFb" role="status"></div>
+  <textarea id="copyBox" hidden readonly style="margin-top:8px;min-height:160px"></textarea>`;
+}
+function summaryText(){
+  const A=S.p.A,B=S.p.B,T=S.T, kA=kunci(A,T), kB=kunci(B,T);
+  const g=id=>S.ans[id]?S.ans[id].raw:"-";
+  return [
+    "LKM Dinamika Populasi: Situ Darma (angka ILUSTRASI)",
+    `Skenario: ${PARAM.skenario[S.sk].nama}; t = ${T} hari`,
+    `Parameter: N0 A = ${fmt(A.N0,false)} kg, td A = ${fmt(A.td,false)} hari, K A = ${fmt(A.K,false)} kg; N0 B = ${fmt(B.N0,false)} kg, td B = ${fmt(B.td,false)} hari, K B = ${fmt(B.K,false)} kg`,
+    `Prediksi: ${S.pred.pilih}. Alasan: ${S.pred.alasan}`,
+    `Jawaban A: n = ${g("An")}, N = ${g("AN")} kg, r = ${g("Ar")} per hari`,
+    `Jawaban B: n = ${g("Bn")}, N = ${g("BN")} kg, r = ${g("Br")} per hari`,
+    `Logistik hari ke-${T}: A = ${fmt(logi(A,T),false)} kg, B = ${fmt(logB(T),false)} kg`,
+    `Nyawa tersisa: ${S.lives}/${PARAM.nyawaAwal}; jenis kesalahan: ${S.salah.join(", ")||"-"}`,
+    `Refleksi 1: ${S.refl[0]}`, `Refleksi 2: ${S.refl[1]}`, `Refleksi 3: ${S.refl[2]}`
+  ].join("\n");
+}
+
+function bindPanel(){
+  const P=$("#panel");
+  P.querySelectorAll("[data-sk]").forEach(b=>b.onclick=()=>{ S.sk=b.dataset.sk; S.p=null; render(); });
+  const inT=$("#inT"); if(inT) inT.onchange=()=>{ const v=Math.round(+inT.value); S.T = (v>=30 && v<=1095) ? v : PARAM.hariDefault; inT.value=S.T; };
+  const bs=$("#btnStart"); if(bs) bs.onclick=()=>{ if(inT) inT.onchange(); newParams(); resetRun(); S.stage="prediksi"; render(); };
+  P.querySelectorAll("[data-pred]").forEach(b=>b.onclick=()=>{ S.pred.alasan=$("#inAlasan").value; S.pred.pilih=b.dataset.pred; render(); });
+  const ta=$("#inAlasan"); if(ta) ta.oninput=()=>{ S.pred.alasan=ta.value; };
+  const bp=$("#btnPred"); if(bp) bp.onclick=()=>{
+    const fb=$("#predFb");
+    if(!S.pred.pilih){ fb.innerHTML=`<div class="fb warn" style="margin-top:8px">Pilih salah satu tumbuhan dahulu.</div>`; return; }
+    if(S.pred.alasan.trim().length<20){ fb.innerHTML=`<div class="fb warn" style="margin-top:8px">Tuliskan alasan minimal 20 karakter.</div>`; return; }
+    S.stage="hitung"; render(); focusFirst();
+  };
+  P.querySelectorAll("[data-check]").forEach(b=>{
+    const i=+b.dataset.check, q=QS[i], id=q.sp+q.k, inp=$("#in_"+id);
+    inp.oninput=()=>{ const v=parseAngka(inp.value); $("#rd_"+id).innerHTML = inp.value.trim()? (isNaN(v)?"Belum terbaca sebagai angka.":`Dibaca sebagai: ${fmt(v)}`) : ""; };
+    inp.onkeydown=e=>{ if(e.key==="Enter") b.click(); };
+    b.onclick=()=>checkNum(i);
+  });
+  const bt=$("#btnToTelaah"); if(bt) bt.onclick=()=>{ S.stage="telaah"; render(); };
+  P.querySelectorAll("[data-mcq]").forEach(b=>b.onclick=()=>checkMcq(+b.dataset.mcq,+b.dataset.o));
+  const br=$("#btnToRefl"); if(br) br.onclick=()=>{ S.stage="refleksi"; render(); };
+  P.querySelectorAll("[data-rf]").forEach(t=>t.oninput=()=>{ S.refl[+t.dataset.rf]=t.value; });
+  const bc=$("#btnCopy"); if(bc) bc.onclick=()=>{
+    const txt=summaryText(), box=$("#copyBox");
+    const fallback=()=>{ box.hidden=false; box.value=txt; box.focus(); box.select(); $("#copyFb").innerHTML=`<div class="fb warn" style="margin-top:8px">Salin otomatis tidak tersedia. Teks sudah dipilih di kotak di bawah; salin secara manual.</div>`; };
+    try{ navigator.clipboard.writeText(txt).then(()=>{ $("#copyFb").innerHTML=`<div class="fb good" style="margin-top:8px">Jawaban tersalin. Tempelkan ke lembar tugas Anda.</div>`; }, fallback); }catch(e){ fallback(); }
+  };
+  const toL2=()=>{ L2=null; S.l2sk=S.l2sk||(S.sk==="jernih"?"sedang":S.sk); S.stage="level2"; render(); window.scrollTo({top:0,behavior:"smooth"}); };
+  const b2=$("#btnToL2"); if(b2) b2.onclick=toL2;
+  const b2s=$("#btnSkipL2"); if(b2s) b2s.onclick=toL2;
+  const ba=$("#btnAgain"); if(ba) ba.onclick=()=>{ newParams(); resetRun(); S.stage="hitung"; render(); focusFirst(); };
+}
+function focusFirst(){ const i=P_first(); if(i) i.focus({preventScroll:true}); }
+function P_first(){ return document.querySelector("#panel input[type=text]"); }
+
+function checkNum(i){
+  const q=QS[i], id=q.sp+q.k, inp=$("#in_"+id), box=$("#q_"+id), fb=$("#fb_"+id);
+  const raw=inp.value, v=parseAngka(raw);
+  if(isNaN(v)){ fb.innerHTML=`<div class="fb warn">Tulis jawaban berupa angka, misalnya 38,42 atau 4,5e15. Nyawa tidak berkurang.</div>`; return; }
+  const key=kunci(S.p[q.sp],S.T)[q.k];
+  S.ans[id]={raw, val:v, ok:false};
+  if(within(v,key)){
+    S.ans[id].ok=true; S.qi=Math.max(S.qi,i+1);
+    if(S.qi>=QS.length){ S.hitungSelesai=true; S.t=S.T; }
+    cheer(); render();
+    const nb=$("#q_"+id); if(nb){ nb.classList.add("pop"); }
+    const nx=P_first(); if(nx) nx.focus({preventScroll:true});
+    return;
+  }
+  const d=diagnose(q.sp,q.k,v);
+  box.classList.remove("shake"); void box.offsetWidth; box.classList.add("shake");
+  if(d.soft){ fb.innerHTML=`<div class="fb warn">${d.msg} Nyawa tidak berkurang kali ini.</div>`; S.salah.push(d.j); return; }
+  fb.innerHTML=`<div class="fb bad"><b>Belum tepat (−1 nyawa).</b> ${d.msg}</div>`;
+  loseLife(d.j);
+}
+function checkMcq(i,oi){
+  const m=S.mcq[i], o=m.o[oi];
+  if(o.ok){ m.solved=true; m.lastFb={ok:1,t:"Benar."}; S.mi=Math.max(S.mi,i+1); if(S.mi>=S.mcq.length){ S.logUnlocked=true; S.chartMode="log"; } cheer(); render(); const nb=$("#mq_"+i); if(nb) nb.classList.add("pop"); return; }
+  m.tried.push(oi); m.lastFb={ok:0,t:"Belum tepat (−1 nyawa). "+(typeof o.fb==="function"?o.fb():o.fb)};
+  render(); const nb=$("#mq_"+i); if(nb){ nb.classList.add("shake"); }
+  loseLife("telaah: "+m.id);
+}
+
+/* =====================================================================
+   LEVEL 2 · PENGELOLA SITU — tanpa uang; batasannya ekologis. Semua angka ILUSTRASI.
+   Model harian (Euler, langkah 0,25 hari):
+     dA/dt = rA·A(1 − A/KA)
+     dB/dt = rB·B(1 − B/KB) − m·naungan·B,  naungan = c + kL·limbah + kG·G   (c = tutupan eceng gondok)
+     ikan menuju 100·(1 − 0,9c − 0,35·limbah − 0,6·G + aerasi)
+   G = gangguan habitat akibat panen (lumpur teraduk, alat panen); meluruh dengan waktu paruh.
+   Menutup pipa: limbah turun bertahap (waktu paruh), sehingga KA dan rA ikut turun.
+   ===================================================================== */
+const PARAM2 = {
+  hariPerGiliran: 14, jumlahGiliran: 26,   // nilai bawaan; diganti oleh pilihan durasi di bawah
+  durasi: {                                // pilihan panjang giliran (≈ 1 tahun). Panen tetap berlangsung per 14 hari di dalam giliran.
+    kilat:   { nama: "Kilat",   hari: 42, giliran: 9,  ket: "9 giliran, ±10 menit" },
+    standar: { nama: "Standar", hari: 28, giliran: 13, ket: "13 giliran, ±15 menit" },
+    lengkap: { nama: "Lengkap", hari: 14, giliran: 26, ket: "26 giliran, ±30 menit" }
+  },
+  durasiBawaan: "kilat",
+  panen: { kapasitas_ton: 20, bonusPrakiraan: 0.5, fraksiMaks: 0.8,   // maks 80% tikar terangkat; sisa fragmen tumbuh lagi
+           gangguanTetap: 0.08, gangguanPerTon: 0.008, waktuParuhGangguan_hari: 10 },
+  toleransiPrakiraan: { relatif: 0.15, poin: 0.5 },   // akurat bila selisih ≤ 15% relatif atau ≤ 0,5 poin persen
+  pipa: { waktuParuhLimbah_hari: 30, sisaK: 0.25, sisaR: 0.7 },
+  aerasi: { efekOksigen: 0.3 },
+  naunganLimbah: 0.35, naunganGangguan: 1.0,
+  rumputPitaAwal_fraksiK: 0.6,
+  ambangRumputPita_fraksiAwal: 0.05, ambangIkan: 10,
+  bobotKesehatan: { rumputPita: 0.4, ikan: 0.4, permukaanTerbuka: 0.2 }
+};
+let L2=null;
+function l2Fstar(c,limbah,G,aer){ return 100*Math.max(0,Math.min(1, 1-0.9*c-0.35*limbah-0.6*G+(aer?PARAM2.aerasi.efekOksigen:0))); }
+function l2Eff(st){
+  const A=S.p.A, f= st.limbah0>0 ? st.limbah/st.limbah0 : 1, P=PARAM2.pipa;
+  return { K: A.K*(P.sisaK+(1-P.sisaK)*f), r: (LN2/A.td)*(P.sisaR+(1-P.sisaR)*f) };
+}
+function l2Health(st){ const w=PARAM2.bobotKesehatan, c=Math.min(1,st.NA/CAP);
+  return 100*(w.rumputPita*Math.min(1,st.NB/st.NB0) + w.ikan*st.F/100 + w.permukaanTerbuka*(1-c)); }
+function l2Shade(st){ return Math.min(1.5, Math.min(1,st.NA/CAP) + PARAM2.naunganLimbah*st.limbah + PARAM2.naunganGangguan*st.G); }
+function l2Step(st, days, aer, rec){
+  const B=S.p.B, rB=LN2/B.td, m=PARAM.naungan.m_per_hari, dt=0.25, hl=PARAM2.pipa.waktuParuhLimbah_hari, hg=PARAM2.panen.waktuParuhGangguan_hari;
+  for(let d=0; d<days; d++){
+    for(let k=0;k<4;k++){
+      const c=Math.min(1,st.NA/CAP), e=l2Eff(st), sh=l2Shade(st);
+      st.NA=Math.max(0, st.NA+dt*e.r*st.NA*(1-st.NA/e.K));
+      st.NB=Math.max(0, st.NB+dt*(rB*st.NB*(1-st.NB/B.K)-m*sh*st.NB));
+      if(st.pipeClosed) st.limbah*=Math.pow(0.5,dt/hl);
+      st.G*=Math.pow(0.5,dt/hg);
+      st.F+=dt*0.15*(l2Fstar(c,st.limbah,st.G,aer)-st.F);
+    }
+    st.day++;
+    if(rec){
+      const h=l2Health(st); st.sumH+=h; st.nH++;
+      st.peakNB=Math.max(st.peakNB,st.NB);
+      st.hist.push({day:st.day, c:Math.min(1,st.NA/CAP), b:st.NB/st.NB0, F:st.F, h});
+      if(st.NB < PARAM2.ambangRumputPita_fraksiAwal*st.NB0){ st.over="rumput"; return; }
+      if(st.F < PARAM2.ambangIkan){ st.over="ikan"; return; }
+    }
+  }
+}
+function l2Start(sk){
+  S.sk=sk; newParams();
+  const D=PARAM2.durasi[S.l2dur||PARAM2.durasiBawaan]; PARAM2.hariPerGiliran=D.hari; PARAM2.jumlahGiliran=D.giliran;
+  S.T=PARAM2.hariPerGiliran*PARAM2.jumlahGiliran;
+  const sc=PARAM.skenario[sk], NB0=S.p.B.K*PARAM2.rumputPitaAwal_fraksiK;
+  L2={ sk, day:0, turn:0, NA:S.p.A.N0, NB:NB0, NB0, peakNB:NB0, G:0,
+       limbah0:sc.limbah, limbah:sc.limbah, pipeClosed:false, pipeDay:null, F:0, over:null,
+       pred:null, action:"tunggu", ton:PARAM2.panen.kapasitas_ton, hist:[], log:[], harvests:[], refl:["","",""],
+       prakAkurat:0, prakTotal:0, sumH:0, nH:0, totTon:0 };
+  L2.F=l2Fstar(Math.min(1,L2.NA/CAP),L2.limbah,0,false);
+  L2.hist.push({day:0,c:Math.min(1,L2.NA/CAP),b:1,F:L2.F,h:l2Health(L2)});
+}
+function l2NoActionCover(){ const c={...L2, hist:[]}; l2Step(c,PARAM2.hariPerGiliran,false,false); return Math.min(1,c.NA/CAP); }
+function l2Cap(){ return PARAM2.panen.kapasitas_ton*(L2.pred&&L2.pred.ok?1+PARAM2.panen.bonusPrakiraan:1); }
+function l2Harvest(tonReq){ // ton yang benar-benar terangkat
+  return Math.min(tonReq, l2Cap(), PARAM2.panen.fraksiMaks*L2.NA/1000);
+}
+function l2Run(){
+  const before=Math.min(1,L2.NA/CAP);
+  let desc="Menunggu";
+  if(L2.action==="pipa"){ L2.pipeClosed=true; L2.pipeDay=L2.day; desc="Menutup pipa limbah"; }
+  if(L2.action==="aerasi") desc="Aerasi";
+  // giliran dibagi menjadi putaran 14 hari; panen dilakukan di awal setiap putaran
+  const n=Math.max(1,Math.round(PARAM2.hariPerGiliran/14)), len=PARAM2.hariPerGiliran/n; let tot=0;
+  for(let i=0;i<n && !L2.over;i++){
+    if(L2.action==="panen"){ const t=l2Harvest(L2.ton); L2.NA-=t*1000; L2.totTon+=t; tot+=t; L2.G+=PARAM2.panen.gangguanTetap+PARAM2.panen.gangguanPerTon*t; L2.harvests.push(L2.day); }
+    l2Step(L2,len,L2.action==="aerasi",true);
+  }
+  if(L2.action==="panen") desc=`Panen ${n>1?n+"× ":""}(total ${tonTxt(tot)})`;
+  L2.turn++;
+  L2.log.unshift({turn:L2.turn, day:L2.day, desc, pred:L2.pred, c0:before, c1:Math.min(1,L2.NA/CAP), h:l2Health(L2)});
+  if(!L2.over && L2.turn>=PARAM2.jumlahGiliran) L2.over="menang";
+  L2.pred=null; L2.action="tunggu";
+  if(L2.over==="menang") cheer();
+  render();
+}
+function l2Score(){ return Math.round(L2.nH? L2.sumH/L2.nH : l2Health(L2)); }
+const tonTxt=t=> t<1 ? `${fmt(t*1000,false)} kg` : `${fmt(t,false)} ton`;
+const pc=v=>{ const x=v*100; return (x===0?"0":x<1?x.toLocaleString("id-ID",{maximumSignificantDigits:2}):x.toLocaleString("id-ID",{maximumFractionDigits:1}))+"%"; };
+
+function viewL2Intro(){
+  const P=PARAM2.panen;
+  return `<h2>Level 2 · Pengelola Situ</h2>
+  <p style="margin-top:0">Anda kini pengelola situ selama sekitar satu tahun. Eceng gondok baru masuk; padang rumput pita di dasar dan ikan masih sehat. Tidak ada uang di sini. Batasan Anda adalah alam dan tenaga.</p>
+  <ul class="small" style="margin:0 0 8px;padding-left:18px">
+    <li><b>Satu tindakan per giliran:</b> panen, tutup pipa limbah, aerasi, atau tunggu. Memilih satu berarti melewatkan yang lain.</li>
+    <li><b>Kapasitas panen terbatas:</b> paling banyak ${P.kapasitas_ton} ton per 14 hari (giliran yang lebih panjang berisi beberapa putaran panen), dan paling banyak ${P.fraksiMaks*100}% tikar (fragmen yang tersisa tumbuh lagi).</li>
+    <li><b>Panen mengganggu habitat:</b> lumpur teraduk membuat air keruh dan ikan stres untuk sementara.</li>
+    <li><b>Prakiraan akurat</b> tentang tutupan pada akhir giliran menambah kapasitas panen giliran itu sebesar ${P.bonusPrakiraan*100}%.</li>
+    <li><b>Kalah</b> bila rumput pita tinggal &lt; ${PARAM2.ambangRumputPita_fraksiAwal*100}% biomassa awal, atau indeks ikan &lt; ${PARAM2.ambangIkan}. <b>Skor</b> = rata-rata kesehatan situ sepanjang tahun.</li>
+  </ul>
+  <div class="choices" role="group" aria-label="Skenario Level 2">
+    ${["sedang","berat","jernih"].map(k=>`<button type="button" class="choice" data-l2sk="${k}" aria-pressed="${(S.l2sk||"sedang")===k}">${scenIcon(k)}${PARAM.skenario[k].nama}<span class="small muted">${{sedang:"tingkat sedang",berat:"tingkat sulit",jernih:"tingkat mudah"}[k]}</span></button>`).join("")}
+  </div>
+  <div style="margin-top:12px"><b>Durasi permainan</b></div>
+  <div class="row" role="group" aria-label="Durasi permainan" style="margin-top:6px">
+    ${Object.entries(PARAM2.durasi).map(([k,d])=>`<button type="button" class="opt" data-l2dur="${k}" aria-pressed="${(S.l2dur||PARAM2.durasiBawaan)===k}" style="flex:1;min-width:140px;${(S.l2dur||PARAM2.durasiBawaan)===k?"border-color:var(--teal);background:#e6f5f8":""}"><b>${d.nama}</b>: ${d.hari} hari per giliran<br><span class="small muted">${d.ket}</span></button>`).join("")}
+  </div>
+  <div class="row" style="margin-top:12px"><button class="btn go" id="btnL2Go" type="button">Mulai mengelola situ</button></div>
+  <p class="small muted">Parameter diacak ulang dalam rentang yang sama dengan Level 1. Semua angka ILUSTRASI.</p>`;
+}
+function statBox(k,v,extra=""){ return `<div class="param"><div class="k">${k}</div><div class="v">${v}</div>${extra}</div>`; }
+function healthBar(h){ const col=h>=60?"#15803d":h>=35?"#d97706":"#d6264f"; return `<div style="height:8px;border-radius:99px;background:#e2efe9;margin-top:4px;overflow:hidden"><div style="height:100%;width:${Math.max(0,Math.min(100,h)).toFixed(0)}%;background:${col}"></div></div>`; }
+function viewL2(){
+  if(!L2) return viewL2Intro();
+  const c=Math.min(1,L2.NA/CAP), h=l2Health(L2), e=l2Eff(L2), kritis=Math.min(1,(LN2/S.p.B.td)/PARAM.naungan.m_per_hari);
+  const keruh = Math.min(1, PARAM2.naunganLimbah*L2.limbah + PARAM2.naunganGangguan*L2.G);
+  let s=`<h2>Level 2 · Pengelola Situ</h2>
+  <div class="params">
+    ${statBox("Hari / giliran",`${L2.day} · ${Math.min(L2.turn+1,PARAM2.jumlahGiliran)}/${PARAM2.jumlahGiliran}`)}
+    ${statBox("Kesehatan situ",`${h.toFixed(0)} / 100`,healthBar(h))}
+    ${statBox("Tutupan eceng gondok",pc(c))}
+    ${statBox("Rumput pita",`${(100*L2.NB/L2.NB0).toFixed(0)}% awal`)}
+    ${statBox("Indeks ikan",`${L2.F.toFixed(0)}`)}
+    ${statBox("Kekeruhan",`${(keruh*100).toFixed(0)}%`,`<div class="small muted">limbah + gangguan panen</div>`)}
+  </div>`;
+  if(L2.over) return s+viewL2End();
+  const tdEff=LN2/e.r;
+  s+=`<div class="q" style="margin-top:12px" id="l2pred"><div><b>Langkah 1 · Prakiraan.</b> Berapa tutupan eceng gondok (%) pada hari ke-${L2.day+PARAM2.hariPerGiliran} bila tidak dipanen?</div>`;
+  if(!L2.pred){
+    s+=`<div class="inrow"><input type="text" id="inL2pred" inputmode="decimal" autocomplete="off" aria-label="Prakiraan tutupan (%)"><span class="unit">%</span>
+      <button class="btn" type="button" id="btnL2pred">Kunci prakiraan</button><button class="btn alt" type="button" id="btnL2skip">Lewati</button></div>
+      <details class="hint"><summary>Petunjuk</summary>Tutupan sekarang ${pc(c)}. Waktu penggandaan eceng gondok saat ini ≈ ${fmt(tdEff)} hari (r = ${fmt(e.r)} per hari${L2.pipeClosed?", turun karena limbah berkurang":""}). Selama tutupan jauh di bawah daya dukung, tutupan baru ≈ tutupan × 2<sup>${PARAM2.hariPerGiliran}/t<sub>d</sub></sup>. Mendekati daya dukung (${fmt(100*e.K/CAP)}% tutupan), pertumbuhan melambat.</details>
+      <div id="l2predFb" role="status"></div>`;
+  } else {
+    const p=L2.pred;
+    s+= p.skip ? `<div class="fb warn">Prakiraan dilewati: kapasitas panen normal. Data pemantauan: ${pc(p.actual)}.</div>`
+      : `<div class="fb ${p.ok?"good":"bad"}">Prakiraan Anda ${fmt(p.val)}%, data pemantauan ${pc(p.actual)}. ${p.ok?`Akurat: kapasitas panen giliran ini naik menjadi ${fmt(l2Cap())} ton per 14 hari.`:"Belum akurat: kapasitas panen normal."}</div>`;
+  }
+  s+=`</div>`;
+  const dis=!L2.pred, cap=l2Cap(), real=l2Harvest(L2.ton);
+  const card=(id,title,desc,extra="",disabled=false)=>`<label class="opt" style="display:flex;gap:10px;align-items:flex-start;${disabled?"opacity:.55":""}"><input type="radio" name="l2act" value="${id}" ${L2.action===id?"checked":""} ${disabled||dis?"disabled":""} style="margin-top:4px"><span style="flex:1;min-width:0"><b>${title}</b><br><span class="small muted">${desc}</span>${extra}</span></label>`;
+  s+=`<div class="q" style="margin-top:10px;${dis?"opacity:.6":""}"><div><b>Langkah 2 · Tindakan</b> ${dis?"<span class='small muted'>(kunci atau lewati prakiraan dahulu)</span>":""}</div><div class="opts">
+    ${card("panen","Panen eceng gondok",`Kapasitas ${fmt(cap)} ton per 14 hari${PARAM2.hariPerGiliran>14?` (${Math.round(PARAM2.hariPerGiliran/14)} putaran dalam giliran ini)`:""}; paling banyak ${PARAM2.panen.fraksiMaks*100}% tikar. Makin banyak diangkat, makin keruh air untuk sementara.`,
+      `<div class="row" style="margin-top:6px"><input type="range" id="l2ton" min="1" max="${cap}" step="1" value="${Math.min(L2.ton,cap)}" ${dis?"disabled":""} aria-label="Ton yang ingin dipanen" style="min-width:120px"><span id="l2tonLbl" class="small" style="font-variant-numeric:tabular-nums">${l2TonLabel()}</span></div>`)}
+    ${card("pipa","Tutup pipa limbah",L2.limbah0===0?"Tidak ada limbah di skenario ini.":L2.pipeClosed?`Sudah ditutup pada hari ke-${L2.pipeDay}.`:`Memakai giliran ini (tidak bisa panen). Limbah berkurang bertahap (waktu paruh ${PARAM2.pipa.waktuParuhLimbah_hari} hari): air makin jernih, K dan r eceng gondok turun.`,"",L2.pipeClosed||L2.limbah0===0)}
+    ${card("aerasi","Aerasi",`Menambah oksigen selama ${PARAM2.hariPerGiliran} hari ini. Menolong ikan, tidak menambah cahaya ke dasar.`)}
+    ${card("tunggu","Tunggu","Tidak ada tindakan; habitat sempat pulih dari gangguan panen.")}
+  </div>
+  <div class="row"><button class="btn go" id="btnL2run" type="button" ${dis?"disabled":""}>Jalankan ${PARAM2.hariPerGiliran} hari</button></div></div>
+  <p class="small muted">Batas naungan rumput pita: bila tutupan ditambah kekeruhan bertahan di atas ≈ ${(kritis*100).toFixed(0)}% (r<sub>B</sub>/m), rumput pita menyusut.</p>`;
+  if(L2.log.length){
+    s+=`<h3 style="margin-top:12px">Catatan giliran</h3><div class="tbl"><table><thead><tr><th>Giliran</th><th>Tindakan</th><th>Tutupan</th><th>Kesehatan</th></tr></thead><tbody>
+    ${L2.log.slice(0,6).map(l=>`<tr><td>${l.turn} (hari ${l.day})</td><td>${l.desc}</td><td>${pc(l.c0)} → ${pc(l.c1)}</td><td>${l.h.toFixed(0)}</td></tr>`).join("")}
+    </tbody></table></div>`;
+  }
+  return s;
+}
+function l2TonLabel(){ const want=Math.min(L2.ton,l2Cap()), real=l2Harvest(L2.ton);
+  return real<want-1e-9 ? `${tonTxt(want)} diminta, terangkat ${tonTxt(real)} (batas ${PARAM2.panen.fraksiMaks*100}% tikar)` : tonTxt(real); }
+function viewL2End(){
+  const win=L2.over==="menang", h=l2Health(L2);
+  const msg={menang:`Situ bertahan satu tahun. Skor Anda <b>${l2Score()}</b> (rata-rata kesehatan situ sepanjang tahun); kesehatan akhir ${h.toFixed(0)}.`,
+    rumput:`Rumput pita tinggal kurang dari ${PARAM2.ambangRumputPita_fraksiAwal*100}% biomassa awal pada hari ke-${L2.day}. Cahaya ke dasar terlalu lama terhalang (tikar eceng gondok dan/atau air keruh) sehingga rumput pita tidak dapat berfotosintesis.`,
+    ikan:`Indeks ikan turun di bawah ${PARAM2.ambangIkan} pada hari ke-${L2.day}. Tutupan rapat, limbah, dan gangguan panen menurunkan oksigen terlarut.`}[L2.over];
+  const nP=L2.log.filter(l=>l.desc.startsWith("Panen")).length;
+  return `<div class="verdict" style="margin-top:12px;${win?"":"background:var(--coral-soft);border-color:#f3a9ba"}"><div><h3 style="margin:0 0 4px">${win?"Berhasil":"Situ gagal dipertahankan"}</h3><div>${msg}</div>
+    <div class="small" style="margin-top:6px">Panen ${nP} kali (total ${tonTxt(L2.totTon)}). Pipa limbah ${L2.pipeClosed?`ditutup hari ke-${L2.pipeDay}`:"tidak ditutup"}. Prakiraan akurat ${L2.prakAkurat} dari ${L2.prakTotal}.</div></div></div>
+  <h3 style="margin-top:12px">Refleksi Level 2</h3>
+  ${["Bandingkan strategi Anda dengan model: kapan panen paling efektif, dan apa hubungannya dengan waktu penggandaan eceng gondok?",
+     "Mengapa panen sebanyak-banyaknya setiap giliran belum tentu terbaik? Kaitkan dengan gangguan habitat dan naungan pada rumput pita.",
+     "Menutup pipa limbah mengubah parameter apa (r atau K)? Mengapa hasilnya baru terasa beberapa minggu kemudian, dan mengapa aerasi tidak menyelamatkan rumput pita?"]
+    .map((q,i)=>`<label for="l2rf${i}" style="display:block;margin:10px 0 4px"><b>${i+1}.</b> ${q}</label><textarea id="l2rf${i}" data-l2rf="${i}">${esc(L2.refl[i])}</textarea>`).join("")}
+  <div class="row" style="margin-top:12px">
+    <button class="btn" id="btnL2copy" type="button">Salin hasil Level 2</button>
+    <button class="btn go" id="btnL2again" type="button">Main lagi (parameter baru)</button>
+    <button class="btn alt" id="btnL1" type="button">Kembali ke Level 1</button>
+  </div><div id="l2copyFb" role="status"></div><textarea id="l2copyBox" hidden readonly style="margin-top:8px;min-height:160px"></textarea>`;
+}
+function l2Summary(){
+  return ["LKM Level 2: Pengelola Situ (angka ILUSTRASI)",
+    `Skenario: ${PARAM.skenario[L2.sk].nama}. Hasil: ${{menang:"berhasil",rumput:"rumput pita mati",ikan:"ikan habis"}[L2.over]} pada hari ke-${L2.day}.`,
+    `Skor (rata-rata kesehatan) ${l2Score()}; kesehatan akhir ${l2Health(L2).toFixed(0)}; total panen ${tonTxt(L2.totTon)}.`,
+    "Riwayat giliran:", ...L2.log.slice().reverse().map(l=>`  ${l.turn}. hari ${l.day}: ${l.desc}, tutupan ${(l.c0*100).toFixed(2)}% -> ${(l.c1*100).toFixed(2)}%${l.pred&&!l.pred.skip?`, prakiraan ${fmt(l.pred.val,false)}% (${l.pred.ok?"akurat":"meleset"})`:""}`),
+    ...L2.refl.map((r,i)=>`Refleksi ${i+1}: ${r}`)].join("\n");
+}
+function bindL2(){
+  const P=$("#panel");
+  P.querySelectorAll("[data-l2sk]").forEach(b=>b.onclick=()=>{ S.l2sk=b.dataset.l2sk; render(); });
+  P.querySelectorAll("[data-l2dur]").forEach(b=>b.onclick=()=>{ S.l2dur=b.dataset.l2dur; render(); });
+  const go=$("#btnL2Go"); if(go) go.onclick=()=>{ l2Start(S.l2sk||"sedang"); render(); const i=$("#inL2pred"); if(i) i.focus({preventScroll:true}); };
+  const ip=$("#inL2pred");
+  const lock=(skip)=>{
+    const actual=l2NoActionCover();
+    if(skip){ L2.pred={skip:true,ok:false,actual}; render(); return; }
+    const v=parseAngka(ip.value);
+    if(isNaN(v)||v<0||v>100){ $("#l2predFb").innerHTML=`<div class="fb warn">Tulis angka persen antara 0 dan 100, misalnya 12,5.</div>`; return; }
+    const T=PARAM2.toleransiPrakiraan, a=actual*100;
+    const ok=Math.abs(v-a)<=Math.max(T.poin, T.relatif*a);
+    L2.prakTotal++; if(ok) L2.prakAkurat++;
+    L2.pred={val:v,actual,ok}; render();
+    const box=$("#l2pred"); if(box) box.classList.add(ok?"pop":"shake");
+  };
+  if(ip){ $("#btnL2pred").onclick=()=>lock(false); $("#btnL2skip").onclick=()=>lock(true); ip.onkeydown=e=>{ if(e.key==="Enter") lock(false); }; }
+  P.querySelectorAll("input[name=l2act]").forEach(r=>r.onchange=()=>{ L2.action=r.value; render(); });
+  const sl=$("#l2ton"); if(sl) sl.oninput=()=>{ L2.ton=+sl.value; L2.action="panen"; $("#l2tonLbl").textContent=l2TonLabel(); const r=P.querySelector("input[value=panen]"); if(r) r.checked=true; };
+  const run=$("#btnL2run"); if(run) run.onclick=l2Run;
+  P.querySelectorAll("[data-l2rf]").forEach(t=>t.oninput=()=>{ L2.refl[+t.dataset.l2rf]=t.value; });
+  const cp=$("#btnL2copy"); if(cp) cp.onclick=()=>{ const txt=l2Summary(), box=$("#l2copyBox");
+    const fb=()=>{ box.hidden=false; box.value=txt; box.focus(); box.select(); $("#l2copyFb").innerHTML=`<div class="fb warn" style="margin-top:8px">Salin otomatis tidak tersedia. Teks sudah dipilih di kotak di bawah; salin secara manual.</div>`; };
+    try{ navigator.clipboard.writeText(txt).then(()=>{ $("#l2copyFb").innerHTML=`<div class="fb good" style="margin-top:8px">Hasil tersalin.</div>`; },fb); }catch(e){ fb(); } };
+  const ag=$("#btnL2again"); if(ag) ag.onclick=()=>{ l2Start(L2.sk); render(); };
+  const l1=$("#btnL1"); if(l1) l1.onclick=()=>{ L2=null; S.p=null; S.T=PARAM.hariDefault; resetRun(); S.stage="mulai"; render(); };
+}
+function drawChartL2(){
+  const svg=$("#chart"); svg.innerHTML="";
+  const W=640,H=330,m={l:56,r:20,t:16,b:50}, pw=W-m.l-m.r, ph=H-m.t-m.b, T=PARAM2.hariPerGiliran*PARAM2.jumlahGiliran;
+  const x=t=>m.l+pw*t/T, y=v=>m.t+ph*(1-v/100);
+  for(let v=0;v<=100;v+=20){ svgEl("line",{x1:m.l,x2:m.l+pw,y1:y(v),y2:y(v),stroke:"#e2efe9"},svg); const t=svgEl("text",{x:m.l-8,y:y(v)+4,"text-anchor":"end","font-size":"11.5"},svg); t.textContent=v; }
+  for(let t=0;t<=T;t+=56){ svgEl("line",{x1:x(t),x2:x(t),y1:m.t+ph,y2:m.t+ph+5,stroke:"#40605a"},svg); const tx=svgEl("text",{x:x(t),y:m.t+ph+18,"text-anchor":"middle","font-size":"11.5"},svg); tx.textContent=t; }
+  svgEl("line",{x1:m.l,x2:m.l+pw,y1:m.t+ph,y2:m.t+ph,stroke:"#40605a","stroke-width":"1.4"},svg);
+  svgEl("line",{x1:m.l,x2:m.l,y1:m.t,y2:m.t+ph,stroke:"#40605a","stroke-width":"1.4"},svg);
+  const xl=svgEl("text",{x:m.l+pw/2,y:H-8,"text-anchor":"middle","font-size":"12.5","font-weight":"700"},svg); xl.textContent="Waktu (hari)";
+  const yl=svgEl("text",{x:14,y:m.t+ph/2,"text-anchor":"middle","font-size":"12.5","font-weight":"700",transform:`rotate(-90 14 ${m.t+ph/2})`},svg); yl.textContent="Persen (%) / indeks";
+  if(!L2){ const t=svgEl("text",{x:m.l+pw/2,y:m.t+ph/2,"text-anchor":"middle","font-size":"14",fill:"#40605a"},svg); t.textContent="Grafik muncul setelah Level 2 dimulai"; $("#chartNote").textContent=""; return; }
+  const kritis=Math.min(1,(LN2/S.p.B.td)/PARAM.naungan.m_per_hari)*100;
+  svgEl("line",{x1:m.l,x2:m.l+pw,y1:y(kritis),y2:y(kritis),stroke:"#5b6b68","stroke-width":"2","stroke-dasharray":"1.5 4","stroke-linecap":"round"},svg);
+  const kt=svgEl("text",{x:m.l+pw-4,y:y(kritis)-5,"text-anchor":"end","font-size":"11","font-weight":"700",fill:"#40605a"},svg); kt.textContent="batas naungan rumput pita";
+  if(L2.pipeDay!=null){ svgEl("line",{x1:x(L2.pipeDay),x2:x(L2.pipeDay),y1:m.t,y2:m.t+ph,stroke:"#8a5a2b","stroke-width":"1.5","stroke-dasharray":"5 3"},svg); const pt=svgEl("text",{x:x(L2.pipeDay)+4,y:m.t+30,"font-size":"11",fill:"#8a5a2b","font-weight":"700"},svg); pt.textContent="pipa ditutup"; }
+  const line=(f,attrs)=>{ svgEl("path",{d:L2.hist.map((p,i)=>(i?"L":"M")+x(p.day).toFixed(1)+" "+y(Math.min(100,f(p))).toFixed(1)).join(""),fill:"none",...attrs},svg); };
+  line(p=>p.F,{stroke:"#1d4ed8","stroke-width":"2.6","stroke-dasharray":"12 4 2 4"});
+  line(p=>p.b*100,{stroke:"#c2410c","stroke-width":"3.2","stroke-dasharray":"9 6"});
+  line(p=>p.c*100,{stroke:"#15803d","stroke-width":"3.4"});
+  L2.harvests.forEach(d=>svgEl("path",{d:`M${x(d)} ${m.t+ph-2} l-5 -9 h10 Z`,fill:"#15803d"},svg));
+  const b=svgEl("text",{x:m.l+pw-4,y:m.t+14,"text-anchor":"end","font-size":"11","font-weight":"700",fill:"#7a4a00"},svg); b.textContent="ILUSTRASI";
+  $("#chartNote").innerHTML=`Segitiga hijau = panen. Rumput pita dinyatakan sebagai persen biomassa awal (${fmt(L2.NB0)} kg).`;
+}
+
+/* ---------- catatan dosen ---------- */
+function renderNotes(){
+  const rows=Object.entries(PARAM.skenario).map(([k,s])=>{
+    const r=v=>Array.isArray(v)?`${fmt(v[0])}–${fmt(v[1])}`:fmt(v);
+    return `<tr><th>${s.nama}</th><td>${r(s.A.N0)}</td><td>${r(s.A.td)}</td><td>${r(s.A.K)}</td><td>${r(s.B.N0)}</td><td>${r(s.B.td)}</td><td>${r(s.B.K)}</td></tr>`;
+  }).join("");
+  let kunciH="<p class='small muted'>Kunci jawaban untuk parameter yang sedang aktif akan muncul setelah mahasiswa memulai skenario.</p>";
+  if(S.p){
+    const T=S.T, kA=kunci(S.p.A,T), kB=kunci(S.p.B,T);
+    kunciH=`<div class="tbl"><table><thead><tr><th>Kunci (t = ${T} hari)</th><th>n</th><th>N eksponensial (kg)</th><th>r (per hari)</th><th>N logistik (kg)</th></tr></thead><tbody>
+      <tr><th>A</th><td>${fmt(kA.n)}</td><td>${fmt(kA.N)}</td><td>${fmt(kA.r)}</td><td>${fmt(logi(S.p.A,T))}</td></tr>
+      <tr><th>B</th><td>${fmt(kB.n)}</td><td>${fmt(kB.N)}</td><td>${fmt(kB.r)}</td><td>${fmt(logB(T))}</td></tr></tbody></table></div>`;
+  }
+  $("#notesBody").innerHTML=`
+    <p class="small" style="margin:0">Bagian ini memuat kunci jawaban. Tutup bagian ini saat mahasiswa mengerjakan.</p>
+    <div><h3>Rumus</h3>
+      <div class="formula">n = t / t<sub>d</sub><br>N = N<sub>0</sub> × 2<sup>n</sup> = N<sub>0</sub> × e<sup>r·t</sup><br>r = ln 2 / t<sub>d</sub> (per hari)<br>Logistik: dN/dt = rN(1 − N/K); N(t) = K / (1 + ((K − N<sub>0</sub>)/N<sub>0</sub>) e<sup>−rt</sup>) untuk A<br>Rumput pita (B): dN/dt = rN(1 − N/K) − m·c(t)·N, c(t) = tutupan eceng gondok, m = ${fmt(PARAM.naungan.m_per_hari)} per hari (ILUSTRASI, ubah di PARAM.naungan)</div></div>
+    <div><h3>Kunci untuk parameter aktif</h3>${kunciH}</div>
+    <div><h3>Kunci Telaah</h3><ol class="small" style="margin:0;padding-left:18px">
+      <li>log₁₀ dipakai padahal rumus memakai ln.</li><li>Satuan t dan t<sub>d</sub> berbeda (tahun dan hari), sehingga n terlalu kecil.</li>
+      <li>Model eksponensial mengasumsikan r tetap dan sumber daya tak terbatas.</li><li>Pertambahan terbesar saat N = K/2.</li></ol></div>
+    <div><h3>Rentang parameter (ILUSTRASI, ubah di tabel PARAM)</h3>
+      <div class="tbl"><table><thead><tr><th>Skenario</th><th>N₀ A (kg)</th><th>t_d A (hari)</th><th>K A (kg)</th><th>N₀ B (kg)</th><th>t_d B (hari)</th><th>K B (kg)</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <p class="small muted">Tutupan 100% pada adegan = ${fmt(PARAM.situ.luas_m2)} m² × ${fmt(PARAM.situ.biomassaTutupPenuh_kg_per_m2)} kg/m² = ${fmt(CAP)} kg biomassa basah A. Toleransi jawaban ${Math.round(PARAM.toleransi*100)}%. Jawaban N yang konsisten dengan n yang dibulatkan ${PARAM.pembulatanDiniKurangiNyawa?"dihitung salah":"diberi peringatan tanpa mengurangi nyawa"} (pengaturan <code>pembulatanDiniKurangiNyawa</code>).</p></div>
+    <div><h3>Level 2 · Pengelola Situ</h3><p class="small" style="margin:0">Tanpa uang. Model harian (Euler, langkah 0,25 hari): dA/dt = r<sub>A</sub>A(1 − A/K<sub>A</sub>); dB/dt = r<sub>B</sub>B(1 − B/K<sub>B</sub>) − m·(c + ${PARAM2.naunganLimbah}·limbah + ${PARAM2.naunganGangguan}·G)·B; indeks ikan menuju 100 × (1 − 0,9c − 0,35·limbah − 0,6G + aerasi). G = gangguan habitat dari panen (${PARAM2.panen.gangguanTetap} per panen + ${PARAM2.panen.gangguanPerTon} per ton, waktu paruh ${PARAM2.panen.waktuParuhGangguan_hari} hari). Kapasitas panen ${PARAM2.panen.kapasitas_ton} ton per giliran (+${PARAM2.panen.bonusPrakiraan*100}% bila prakiraan akurat), maksimal ${PARAM2.panen.fraksiMaks*100}% tikar. Menutup pipa memakai satu giliran; limbah turun dengan waktu paruh ${PARAM2.pipa.waktuParuhLimbah_hari} hari, K<sub>A</sub> turun sampai ${PARAM2.pipa.sisaK*100}% dan r<sub>A</sub> sampai ${PARAM2.pipa.sisaR*100}%. Skor = rata-rata kesehatan harian. Semua angka di tabel PARAM2 (ILUSTRASI).</p>
+      <p class="small" style="margin:6px 0 0">Pesan yang ingin dimunculkan: panen dini efektif karena biomassa kecil; panen terlambat tidak dapat mengejar pertumbuhan karena kapasitas terbatas; panen maksimal setiap giliran menambah kekeruhan sehingga merugikan rumput pita dan ikan; menutup pipa mengubah K dan r tetapi efeknya tertunda; aerasi menolong ikan tetapi tidak menolong rumput pita yang kekurangan cahaya.</p></div>
+    <div><h3>Diagnosis kesalahan yang dikenali</h3><p class="small" style="margin:0">Mencampur hari dan tahun, pembagian terbalik, lupa memangkatkan, lupa N₀, basis e atau 10, pembulatan n terlalu dini, salah orde pangkat 10, log₁₀ bukan ln, lupa ln 2, menulis r dalam persen.</p></div>`;
+}
+
+/* ---------- kontrol global ---------- */
+$("#tSlider").addEventListener("input",e=>{ S.t=+e.target.value; updateScene(); drawChart(); });
+$("#mExp").onclick=()=>{ S.chartMode="exp"; render(); };
+$("#mLog").onclick=()=>{ if(S.logUnlocked){ S.chartMode="log"; render(); } };
+$("#btnRetry").onclick=()=>{ $("#over").hidden=true; newParams(); resetRun(); S.stage="hitung"; render(); focusFirst(); };
+$("#btnScen").onclick=()=>{ $("#over").hidden=true; S.p=null; resetRun(); S.stage="mulai"; render(); };
+
+buildScene();
+S.mcq=buildMcq();
+S.sk="sedang";
+render();
+</script>
+
+</body>
+</html>
